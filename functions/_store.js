@@ -3,10 +3,22 @@
 //   or UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN.
 import { HttpError } from "./_errors.js";
 
+// Finds the Upstash REST settings whatever prefix the hosting integration used (KV_, STORAGE_, UPSTASH_REDIS_, custom…).
+function find(env) {
+  const keys = Object.keys(env || {});
+  const pick = (re, bad) => keys.find((k) => re.test(k) && !(bad && bad.test(k)) && env[k]);
+  const urlKey = ["KV_REST_API_URL", "STORAGE_REST_API_URL", "UPSTASH_REDIS_REST_URL"].find((k) => env[k]) || pick(/_REST_(API_)?URL$/);
+  const tokKey = ["KV_REST_API_TOKEN", "STORAGE_REST_API_TOKEN", "UPSTASH_REDIS_REST_TOKEN"].find((k) => env[k]) || pick(/_REST_(API_)?TOKEN$/, /READ_ONLY/);
+  return { url: urlKey && env[urlKey], token: tokKey && env[tokKey], urlKey, tokKey };
+}
+
 function conn(env) {
-  const url = env.KV_REST_API_URL || env.STORAGE_REST_API_URL || env.UPSTASH_REDIS_REST_URL;
-  const token = env.KV_REST_API_TOKEN || env.STORAGE_REST_API_TOKEN || env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) throw new HttpError(503, "The site's database isn't connected yet. Add Upstash Redis in your hosting settings.");
+  const { url, token } = find(env);
+  if (!url || !token) {
+    const seen = Object.keys(env || {}).filter((k) => /KV|REDIS|UPSTASH|STORAGE/i.test(k));
+    throw new HttpError(503, "The site's database isn't connected yet. Connect Upstash Redis to this project in Vercel → Storage, then redeploy."
+      + (seen.length ? ` (Found: ${seen.join(", ")})` : " (No database settings found in this deployment.)"));
+  }
   return { url: url.replace(/\/+$/, ""), token };
 }
 
@@ -27,4 +39,4 @@ export const kv = {
   async smembers(env, key) { return (await redis(env, "SMEMBERS", key)) || []; },
 };
 
-export const hasStore = (env) => !!((env.KV_REST_API_URL || env.STORAGE_REST_API_URL || env.UPSTASH_REDIS_REST_URL) && (env.KV_REST_API_TOKEN || env.STORAGE_REST_API_TOKEN || env.UPSTASH_REDIS_REST_TOKEN));
+export const hasStore = (env) => { const f = find(env); return !!(f.url && f.token); };
