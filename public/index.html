@@ -464,7 +464,7 @@ import { SHOWS } from "/shows.js";
         <img src="/frames/star.png" alt=""><span class="lbl">${esc(s.city.toUpperCase())}<small>${st === "tonight" ? "TONIGHT" : p.m.replace(".","") + " " + p.d}</small></span></button>`;
     }).join("");
     return `<div class="txmap ${cur !== "all" ? "picked" : ""}"><img class="tx" src="/frames/texas.png" alt="Map of Texas with the tour stops">${pins}</div>
-      <p class="maphint">${cur === "all" ? "Tap a star" : `<button class="tbtn" data-chip="content" data-v="${esc(cur)}">Show all cities</button>`}</p>`;
+      <p class="maphint">${cur === "all" ? "Tap a star" : "&nbsp;"}</p>`;
   }
 
   function gallery(list, emptyHtml){
