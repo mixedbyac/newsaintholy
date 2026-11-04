@@ -322,8 +322,8 @@ img{max-width:100%}
 .teamkey input{width:min(300px,100%)}
 .txmap{position:relative;width:min(440px,86vw);margin:0 auto 4px;aspect-ratio:636/618}
 .txmap .tx{width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none}
-.pin{position:absolute;transform:translate(-50%,-50%);background:none;border:0;padding:6px;cursor:pointer;display:grid;place-items:center}
-.pin img{width:clamp(26px,5.5vw,38px);height:auto;transition:transform .25s cubic-bezier(.3,1.6,.5,1),opacity .2s;filter:drop-shadow(0 3px 6px rgba(0,0,0,.12))}
+.pin{position:absolute;transform:translate(-50%,-50%);-webkit-tap-highlight-color:transparent;outline-offset:2px;background:none;border:0;padding:6px;cursor:pointer;display:grid;place-items:center}
+.pin img{width:clamp(26px,5.5vw,38px);height:auto;will-change:transform;backface-visibility:hidden;transition:transform .25s cubic-bezier(.3,1.6,.5,1),opacity .2s;filter:drop-shadow(0 3px 6px rgba(0,0,0,.12))}
 .pin:hover img,.pin:focus-visible img{transform:scale(1.18) rotate(-8deg)}
 .pin.on img{transform:scale(1.35) rotate(-12deg)}
 .txmap.picked .pin:not(.on) img{opacity:.35}
@@ -467,6 +467,14 @@ import { SHOWS } from "/shows.js";
       <p class="maphint">${cur === "all" ? "Tap a star" : "&nbsp;"}</p>`;
   }
 
+  function updateRoadMap(){
+    const cur = S.filter.content;
+    $(".txmap").classList.toggle("picked", cur !== "all");
+    document.querySelectorAll(".txmap .pin").forEach(p => { const on = p.dataset.v === cur; p.classList.toggle("on", on); p.setAttribute("aria-pressed", on); });
+    $(".maphint").innerHTML = cur === "all" ? "Tap a star" : "&nbsp;";
+    $("#listBody").innerHTML = crewSection(cur === "all" ? null : cur);
+  }
+
   function gallery(list, emptyHtml){
     if (!list.length) return `<div class="empty">${emptyHtml}</div>`;
     return `<div class="grid">${list.map(r => {
@@ -543,7 +551,7 @@ import { SHOWS } from "/shows.js";
   function viewList(kind){
     const f = S.filter[kind] === "all" ? null : S.filter[kind];
     const title = kind === "fans" ? "POV" : "Road";
-    return `<div class="head"><h2>${title}</h2></div>${kind === "content" ? roadMap() : chips(kind)}${kind === "fans" ? fanSection(f) : crewSection(f)}`;
+    return `<div class="head"><h2>${title}</h2></div>${kind === "content" ? roadMap() : chips(kind)}<div id="listBody">${kind === "fans" ? fanSection(f) : crewSection(f)}</div>`;
   }
 
   function viewShow(id){
@@ -597,7 +605,9 @@ import { SHOWS } from "/shows.js";
   // ---- interactions ----
   app.addEventListener("click", e => {
     const bl = e.target.closest("[data-booth]"); if (bl){ B.show = bl.dataset.booth; B.from = bl.dataset.booth; app.dataset.view = ""; return; }
-    const c = e.target.closest("[data-chip]"); if (c){ const k = c.dataset.chip; S.filter[k] = S.filter[k] === c.dataset.v ? "all" : c.dataset.v; render(); return; }
+    const c = e.target.closest("[data-chip]"); if (c){ const k = c.dataset.chip; S.filter[k] = S.filter[k] === c.dataset.v ? "all" : c.dataset.v;
+      if (k === "content" && route() === "content" && $(".txmap")) { updateRoadMap(); return; }  // update in place: no flicker
+      render(); return; }
     const t = e.target.closest("[data-tab]"); if (t){ S.showTab = t.dataset.tab; render(); return; }
     const sb = e.target.closest("[data-drop]"); if (sb){ pending = ctx(sb.dataset.drop, sb.dataset.show || null); $("#dropInput").click(); return; }
     const o = e.target.closest("[data-open]"); if (o){ openLB(o.dataset.open); return; }
