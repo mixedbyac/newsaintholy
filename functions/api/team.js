@@ -6,10 +6,12 @@
 // Dropbox folders: POV/Uploaded (fan uploads) → Approve → POV/Approved. Nothing is deleted: Pass / Take down move files
 // to POV/Passed or Road/_Removed.
 import { SHOWS, folderOf, MEDIA_RE, VIDEO_RE, root, rpc, content, json, fail, HttpError, showForFolder, listTree, dropboxCfg, forgetCfg } from "../_lib.js";
-import { kv } from "../_store.js";
+import { kv, logEvent } from "../_store.js";
 import { hashPassword, checkPassword, getUser, saveUser, deleteUser, listUsers, hasOwner, newSession, endSession, currentUser, isAdmin, normEmail, randomId, ROLES } from "../_auth.js";
 
 const clean = (n) => (n || "upload").replace(/[^\w.\- ]+/g, "").replace(/\s+/g, " ").trim().slice(-80) || "upload";
+const cityOf = (id) => (SHOWS.find((s) => s.id === id) || {}).city || id;
+const fileName = (p) => String(p || "").split("/").pop();
 const okEmail = (e) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e);
 
 // Which show does a Dropbox path belong to, under a base folder ("POV/Uploaded", "POV/Approved", "Road")?
@@ -56,11 +58,13 @@ export async function onRequestPost({ request, env }) {
         const pw = await hashPassword(b.password);
         await saveUser(env, { email, name: String(b.name || "").slice(0, 60), role: "owner", joined: true, ...pw });
         await kv.set(env, "owner", email);
+        await logEvent(env, b.name || email, "Created the owner account");
         return json({ token: await newSession(env, email), role: "owner" });
       }
       case "login": {
         const u = await getUser(env, b.email);
         if (!u || !u.joined || !(await checkPassword(u, b.password))) throw new HttpError(401, "Email or password didn't match.");
+        await logEvent(env, u.name || u.email, "Signed in");
         return json({ token: await newSession(env, u.email), role: u.role, name: u.name });
       }
       case "invite-info": {
@@ -75,6 +79,7 @@ export async function onRequestPost({ request, env }) {
         const u = (await getUser(env, inv.email)) || { email: inv.email, role: inv.role };
         await saveUser(env, { ...u, name: String(b.name || u.name || "").slice(0, 60), joined: true, ...pw });
         await kv.del(env, "invite:" + code);
+        await logEvent(env, b.name || inv.email, `Joined the team as ${inv.role === "admin" ? "Admin" : "Contributor"}`);
         return json({ token: await newSession(env, inv.email), role: u.role });
       }
     }
@@ -83,6 +88,8 @@ export async function onRequestPost({ request, env }) {
     const me = await currentUser(request, env);
     if (!me) throw new HttpError(401, "Please sign in.");
     const admin = isAdmin(me);
+    const who = me.name || me.email;
+    const log = (what) => logEvent(env, who, what);
     await dropboxCfg(env);
     const R = root(env);
 
@@ -108,6 +115,7 @@ export async function onRequestPost({ request, env }) {
         let rootDir = String(b.root || cur.root || "/New Saint Holy").trim(); if (!rootDir.startsWith("/")) rootDir = "/" + rootDir;
         await kv.set(env, "cfg:dropbox", { ...cur, appKey, appSecret, root: rootDir.replace(/\/+$/, "") });
         forgetCfg();
+        await log(`Saved Dropbox app settings (folder ${rootDir})`);
         return json({ ok: true });
       }
       case "dropbox-connect": {
@@ -124,7 +132,15 @@ export async function onRequestPost({ request, env }) {
         const cur = (await kv.get(env, "cfg:dropbox")) || {};
         delete cur.refreshToken; delete cur.account;
         await kv.set(env, "cfg:dropbox", cur); forgetCfg();
+        await log("Disconnected Dropbox");
         return json({ ok: true });
+      }
+
+      // -- Activity log --
+      case "log": {
+        if (!admin) throw new HttpError(403, "Admins only.");
+        const n = Math.min(500, Math.max(1, Number(b.limit) || 100));
+        return json({ items: await kv.lrange(env, "log", 0, n - 1) }, { headers: { "Cache-Control": "no-store" } });
       }
 
       // -- Team members --
@@ -140,6 +156,7 @@ export async function onRequestPost({ request, env }) {
         await saveUser(env, { ...(existing || {}), email, role, joined: !!existing?.joined, name: existing?.name || "" });
         const code = randomId(18);
         await kv.set(env, "invite:" + code, { email, role }, 60 * 60 * 24 * 14);
+        await log(`Invited ${email} as ${role === "admin" ? "Admin" : "Contributor"}`);
         return json({ link: `${origin}/#join-${code}` });
       }
       case "set-role": {
@@ -149,6 +166,7 @@ export async function onRequestPost({ request, env }) {
         if (u.role === "owner") throw new HttpError(400, "The owner stays the owner.");
         if (!ROLES.includes(b.role) || b.role === "owner") throw new HttpError(400, "Pick Admin or Contributor.");
         await saveUser(env, { ...u, role: b.role });
+        await log(`Changed ${u.name || u.email} to ${b.role === "admin" ? "Admin" : "Contributor"}`);
         return json({ ok: true });
       }
       case "remove-member": {
@@ -157,6 +175,7 @@ export async function onRequestPost({ request, env }) {
         if (!u) return json({ ok: true });
         if (u.role === "owner") throw new HttpError(400, "The owner can't be removed.");
         await deleteUser(env, u.email);
+        await log(`Removed ${u.name || u.email} from the team`);
         return json({ ok: true });
       }
 
@@ -168,12 +187,14 @@ export async function onRequestPost({ request, env }) {
         if (!admin) throw new HttpError(403, "Admins only.");
         const at = locate(env, b.path, "POV/Uploaded"); if (!at) throw new HttpError(400, "Not an uploaded file.");
         await move(env, b.path, `${R}/POV/Approved/${at.folder}/${at.rel}`);
+        await log(`Approved a POV post · ${at.show.city} · ${fileName(b.path)}`);
         return json({ ok: true });
       }
       case "pass": {
         if (!admin) throw new HttpError(403, "Admins only.");
         const at = locate(env, b.path, "POV/Uploaded"); if (!at) throw new HttpError(400, "Not an uploaded file.");
         await move(env, b.path, `${R}/POV/Passed/${at.folder}/${at.rel}`);
+        await log(`Passed on a POV post · ${at.show.city} · ${fileName(b.path)}`);
         return json({ ok: true });
       }
       case "takedown": {
@@ -182,6 +203,7 @@ export async function onRequestPost({ request, env }) {
         if (road) await move(env, b.path, `${R}/Road/_Removed/${road.folder}/${road.rel}`);
         else if (pov) await move(env, b.path, `${R}/POV/Passed/${pov.folder}/${pov.rel}`);
         else throw new HttpError(400, "Not a live file.");
+        await log(`Took down from ${road ? "Road" : "POV"} · ${(road || pov).show.city} · ${fileName(b.path)}`);
         return json({ ok: true });
       }
       case "road-upload-link": {
@@ -192,6 +214,7 @@ export async function onRequestPost({ request, env }) {
         if (!(b.size > 0) || b.size > 150 * 1024 * 1024) throw new HttpError(413, "Files up to 150 MB.");
         const path = `${R}/Road/${folderOf(show)}/${name}`;
         const { link } = await rpc(env, "files/get_temporary_upload_link", { commit_info: { path, mode: "add", autorename: true, mute: true }, duration: 3600 });
+        await log(`Posted to Road · ${show.city} · ${name}`);
         return json({ link });
       }
       case "thumb": {

@@ -3,6 +3,7 @@
 // (no server size limit on Vercel or Cloudflare; Dropbox allows up to 150 MB this way).
 // Files land in <root>/POV/Uploaded/<City>/ and stay private until moved to <root>/POV/Approved/<City>/.
 import { SHOWS, folderOf, MEDIA_RE, root, rpc, json, fail, HttpError, dropboxCfg } from "../_lib.js";
+import { logEvent } from "../_store.js";
 
 export const MAX_DIRECT = 150 * 1024 * 1024;
 const clean = (n) => (n || "upload").replace(/[^\w.\- ]+/g, "").replace(/\s+/g, " ").trim().slice(-80) || "upload";
@@ -23,6 +24,7 @@ export async function onRequestPost({ request, env }) {
     const { link } = await rpc(env, "files/get_temporary_upload_link", {
       commit_info: { path, mode: "add", autorename: true, mute: true }, duration: 3600,
     });
+    await logEvent(env, "A fan", `Uploaded to POV · ${show.city} · ${name} (waiting for approval)`);
     return json({ link }, { headers: { "Cache-Control": "no-store" } });
   } catch (e) {
     return fail(e);

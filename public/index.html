@@ -343,6 +343,16 @@ img{max-width:100%}
 .mapview .pin{transform:translate(-50%,-50%) scale(calc(1 / var(--z)))}
 @media (max-width:699px){.mapview{width:auto;margin-inline:calc(-1 * max(16px, env(safe-area-inset-left,0px)))}}
 @media (prefers-reduced-motion:reduce){.mapview .txmap{transition:none}}
+/* zoomed in: soften the frame so the cropped neighbours fade into the page instead of ending in a hard box */
+.mapview::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .5s;
+  background:linear-gradient(to right,var(--ink),transparent 12%,transparent 88%,var(--ink)),linear-gradient(to bottom,var(--ink),transparent 14%,transparent 86%,var(--ink))}
+.mapview.zoomed::after{opacity:1}
+.pin:focus:not(:focus-visible){outline:none}
+.activity{list-style:none;margin:0 auto;padding:0;max-width:640px;display:grid;gap:0;max-height:420px;overflow:auto;border-top:1px solid var(--line)}
+.activity li{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.45}
+.activity time{font-family:var(--f-mono);font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums;padding-top:1px}
+.activity span{overflow-wrap:anywhere}
+.activity b{font-weight:600}
 </style>
 </head>
 <body>
@@ -482,13 +492,14 @@ import { SHOWS } from "/shows.js";
       return `<button class="pin ${on ? "on" : ""} ${st} side-${s.pin.side || "l"}" style="left:${s.pin.x}%;top:${s.pin.y}%" data-chip="content" data-v="${s.id}" aria-pressed="${on}" aria-label="${esc(s.city)}, ${p.m.replace(".","")} ${p.d}">
         <img src="/frames/star.png" alt=""><span class="lbl">${esc(s.city.toUpperCase())}<small>${st === "tonight" ? "TONIGHT" : p.m.replace(".","") + " " + p.d}</small></span></button>`;
     }).join("");
-    return `<div class="mapview"><div class="txmap ${cur !== "all" ? "picked" : ""}" style="${zoomStyle(cur)}"><img class="tx" src="/frames/us.png" alt="Map of the United States with the tour stops">${pins}</div></div>
+    return `<div class="mapview ${cur !== "all" ? "zoomed" : ""}"><div class="txmap ${cur !== "all" ? "picked" : ""}" style="${zoomStyle(cur)}"><img class="tx" src="/frames/us.png" alt="Map of the United States with the tour stops">${pins}</div></div>
       <p class="maphint">${cur === "all" ? "Tap a star" : "&nbsp;"}</p>`;
   }
 
   function updateRoadMap(){
     const cur = S.filter.content;
     $(".txmap").classList.toggle("picked", cur !== "all");
+    $(".mapview").classList.toggle("zoomed", cur !== "all");
     $(".txmap").setAttribute("style", zoomStyle(cur));
     document.querySelectorAll(".txmap .pin").forEach(p => { const on = p.dataset.v === cur; p.classList.toggle("on", on); p.setAttribute("aria-pressed", on); });
     $(".maphint").innerHTML = cur === "all" ? "Tap a star" : "&nbsp;";
@@ -853,7 +864,7 @@ import { SHOWS } from "/shows.js";
 
   // ---- team (corner dot): accounts, Dropbox settings, approve / pass fan POV, post to Road ----
   const T = {
-    me: null, inbox: [], members: [], dbx: null, status: null, show: null, lastInvite: "", note: "",
+    me: null, inbox: [], members: [], dbx: null, log: [], logMore: false, status: null, show: null, lastInvite: "", note: "",
     get token(){ try { return localStorage.getItem("nsh-team") || ""; } catch { return T._t || ""; } },
     set token(v){ T._t = v; try { v ? localStorage.setItem("nsh-team", v) : localStorage.removeItem("nsh-team"); } catch {} },
     async call(action, extra = {}, raw = false){
@@ -875,8 +886,8 @@ import { SHOWS } from "/shows.js";
       if (T.admin()) T.loadAdmin();
     },
     async loadAdmin(){
-      const [i, m, d] = await Promise.allSettled([T.call("inbox"), T.call("members"), T.call("dropbox-status")]);
-      T.inbox = i.value?.items || []; T.members = m.value?.members || []; T.dbx = d.value || null;
+      const [i, m, d, l] = await Promise.allSettled([T.call("inbox"), T.call("members"), T.call("dropbox-status"), T.call("log", { limit: T.logMore ? 500 : 60 })]);
+      T.inbox = i.value?.items || []; T.members = m.value?.members || []; T.dbx = d.value || null; T.log = l.value?.items || [];
       if (T.status && T.dbx) T.status.dropbox = T.dbx.connected;
       T.badge(); if (route().startsWith("team") && !/^(INPUT|SELECT)$/.test((document.activeElement || {}).tagName || "")) T.draw();
     },
@@ -968,6 +979,13 @@ import { SHOWS } from "/shows.js";
           <button class="tbtn ok" type="submit">Invite</button></form><p class="err" id="inviteForm-err" hidden></p>
         ${T.lastInvite ? `<div class="invlink"><p class="none">Send them this link. It works once, for 14 days.</p><input readonly value="${esc(T.lastInvite)}" id="invLink" aria-label="Invite link"><button class="tbtn ok" data-copy-invite>Copy</button></div>` : ""}
       </section>`;
+      const when = t => { const d = new Date(t), now = Date.now(), m = Math.round((now - t) / 60000);
+        if (m < 1) return "just now"; if (m < 60) return m + "m ago"; if (m < 60 * 24 && d.getDate() === new Date().getDate()) return Math.round(m / 60) + "h ago";
+        return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }); };
+      const activity = `<section class="settings"><h3>Activity</h3>
+        ${T.log.length ? `<ol class="activity">${T.log.map(e => `<li><time datetime="${new Date(e.at).toISOString()}" title="${new Date(e.at).toLocaleString()}">${when(e.at)}</time><span><b>${esc(e.who)}</b> ${esc(e.what)}</span></li>`).join("")}</ol>
+          ${!T.logMore && T.log.length >= 60 ? `<div class="tpost"><button class="tbtn" data-log-more>Show older</button></div>` : ""}` : `<p class="none">Nothing yet. Every change shows up here.</p>`}
+      </section>`;
       app.innerHTML = head + top + `<div class="team">
         ${dbxOk ? "" : dropbox}
         ${dbxOk ? `<section><h3>POV waiting <span>${q.length}</span></h3>
@@ -978,6 +996,7 @@ import { SHOWS } from "/shows.js";
         ${dbxOk ? `<section><h3>Road live <span>${S.crew.length}</span></h3>${live(S.crew, "on Road")}</section>
         <section><h3>POV live <span>${S.fans.length}</span></h3>${live(S.fans, "approved")}</section>` : ""}
         ${members}
+        ${activity}
         ${dbxOk ? dropbox : ""}
       </div>`;
       app.querySelectorAll("[data-tthumb]").forEach(el => T.thumb(q[+el.dataset.tthumb], el));
@@ -1026,6 +1045,7 @@ import { SHOWS } from "/shows.js";
       if (b.dataset.sure) { try { await T.call("remove-member", { email: b.dataset.memberRemove }); toast("Removed."); T.loadAdmin(); } catch (err) { toast(err.message); } }
       else { b.dataset.sure = "1"; b.textContent = "Tap again to remove"; }
     }
+    else if (g("data-log-more")) { T.logMore = true; T.loadAdmin(); }
     else if (g("data-copy-invite")) { const i = $("#invLink"); try { await navigator.clipboard.writeText(i.value); toast("Link copied."); } catch { i.select(); } }
   });
 

@@ -37,6 +37,18 @@ export const kv = {
   async sadd(env, key, m) { return redis(env, "SADD", key, m); },
   async srem(env, key, m) { return redis(env, "SREM", key, m); },
   async smembers(env, key) { return (await redis(env, "SMEMBERS", key)) || []; },
+  async lpush(env, key, val) { return redis(env, "LPUSH", key, JSON.stringify(val)); },
+  async ltrim(env, key, a, b) { return redis(env, "LTRIM", key, String(a), String(b)); },
+  async lrange(env, key, a, b) { return ((await redis(env, "LRANGE", key, String(a), String(b))) || []).map((v) => JSON.parse(v)); },
 };
 
 export const hasStore = (env) => { const f = find(env); return !!(f.url && f.token); };
+
+// Activity log: newest first, keeps the last 1000 entries. Never throws (logging must not break an action).
+export async function logEvent(env, who, what) {
+  try {
+    if (!hasStore(env)) return;
+    await kv.lpush(env, "log", { at: Date.now(), who: who || "Someone", what });
+    await kv.ltrim(env, "log", 0, 999);
+  } catch {}
+}

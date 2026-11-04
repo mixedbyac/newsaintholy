@@ -1,7 +1,7 @@
 // GET /api/dropbox-callback?code=…&state=…
 // Dropbox sends the admin back here after they click Allow. Saves the connection and makes the folders.
 import { SHOWS, folderOf, dropboxCfg, forgetCfg } from "../_lib.js";
-import { kv } from "../_store.js";
+import { kv, logEvent } from "../_store.js";
 
 const back = (origin, msg) => Response.redirect(`${origin}/#team${msg ? "-" + msg : ""}`, 302);
 
@@ -26,6 +26,7 @@ export async function onRequestGet({ request, env }) {
     try { await fetch("https://api.dropboxapi.com/2/files/create_folder_batch", { method: "POST", headers: auth, body: JSON.stringify({ paths, autorename: false }) }); } catch {}
     const cur = (await kv.get(env, "cfg:dropbox")) || {};
     await kv.set(env, "cfg:dropbox", { ...cur, appKey: cfg.appKey, appSecret: cfg.appSecret, root: cfg.root, refreshToken: tok.refresh_token, account });
+    await logEvent(env, account || "Admin", `Connected Dropbox${account ? " (" + account + ")" : ""}`);
     forgetCfg();
     return back(origin, "dropbox-connected");
   } catch {
