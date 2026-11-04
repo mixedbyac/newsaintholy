@@ -1,0 +1,8 @@
+{
+  "name": "newsaintholy",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dropbox:connect": "node scripts/dropbox-connect.mjs"
+  }
+}

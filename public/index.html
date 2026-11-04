@@ -1,0 +1,882 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="WHATUPRG · New Saint Holy Tour. Tour dates, fan POV, the road, and the photobooth.">
+<meta property="og:title" content="New Saint Holy Tour">
+<meta property="og:description" content="WHATUPRG · New Saint Holy Tour. Tour dates, fan POV, the road, and the photobooth.">
+<meta property="og:image" content="/frames/houston-3up-tall.png">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" type="image/png" href="/frames/star.png">
+<link rel="apple-touch-icon" href="/frames/star.png">
+<title>New Saint Holy Tour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Source+Code+Pro:wght@300;400;500&display=swap">
+<style>
+/* Layout: WHATUPRG's white tour/booking pages + mono nav + stacked date rows, on a yetour-style archive skeleton (tour list → show → fan wall / crew content). Single dark look, Yeezus red tape used once per screen. */
+:root{
+  --ink:#ffffff; --deep:#f3f3f1; --fg:#111111; --dim:#6b6b6b; --line:#dcdcdc;
+  --teal:#1d6b74; --indigo:#2b2c8f; --magenta:#a82d66; --tape:#d3241c; --ok:#5fd08a;
+  --f-mark:"Rock Salt","Marker Felt",cursive;
+  --f-mono:"Source Code Pro",ui-monospace,Menlo,monospace;
+  --f-sans:"Inter","Helvetica Neue",Arial,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--ink);color:var(--fg)}
+body{font-family:var(--f-sans);font-size:15px;line-height:1.5;min-height:100vh;overflow-x:hidden}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:1px solid var(--fg);outline-offset:3px}
+
+
+.wrap{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap;padding-block:28px 12px}
+.mark{font-family:var(--f-mark);font-size:clamp(26px,4vw,38px);text-decoration:none;letter-spacing:-.02em;line-height:1;transform:rotate(-3deg);display:inline-block}
+nav{display:flex;gap:clamp(14px,3vw,48px);flex-wrap:wrap;font-family:var(--f-mono);font-weight:300;font-size:15px;letter-spacing:.02em}
+nav a{text-decoration:none;padding-bottom:3px;border-bottom:1px solid transparent}
+nav a[aria-current="page"]{border-bottom-color:var(--fg)}
+nav a:hover{border-bottom-color:var(--dim)}
+
+/* hero */
+.hero{padding-block:clamp(40px,7vw,90px) clamp(32px,5vw,64px);text-align:center}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.24em;color:var(--dim);margin:0}
+.hero h1{margin:0;font-family:var(--f-mono);font-weight:400;font-size:clamp(24px,3.6vw,42px);line-height:1.1;letter-spacing:-.01em;text-wrap:balance}
+.hero h1 b{font-weight:500}
+.tape{justify-self:start;background:var(--tape);color:#fff;font-family:var(--f-sans);font-weight:800;font-size:13px;letter-spacing:.3em;padding:6px 14px 6px 16px;transform:rotate(-2deg)}
+.hero p.sub{margin:0;max-width:44ch;color:var(--dim);font-family:var(--f-mono);font-size:14px}
+
+/* date rows (WHATUPRG tour list) */
+.dates{border-top:1px solid var(--line);margin-bottom:64px}
+.row{display:grid;grid-template-columns:84px minmax(0,1fr) auto;align-items:center;gap:20px 28px;padding-block:20px;border-bottom:1px solid var(--line);text-decoration:none;transition:background .2s}
+.row:hover{background:var(--deep)}
+.d{display:grid;justify-items:center;font-family:var(--f-sans);font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
+.d .m{font-size:15px}.d .n{font-size:38px;font-weight:800}.d .y{font-size:15px}
+.who{min-width:0}
+.who .bill{font-size:clamp(16px,2vw,21px);font-weight:500}
+.who .city{font-size:clamp(16px,2vw,21px);color:var(--dim)}
+.who .meta{display:flex;gap:10px;margin-top:8px;font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;color:var(--dim);flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:170px;padding:11px 18px;border:1.5px solid var(--fg);border-radius:3px;background:transparent;font-family:var(--f-sans);font-weight:500;font-size:14px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;text-decoration:none;transition:background .15s,color .15s}
+.btn:hover{background:var(--fg);color:var(--ink)}
+.btn.solid{background:var(--fg);color:var(--ink)}
+.btn.solid:hover{background:transparent;color:var(--fg)}
+.btn.small{min-width:0;padding:7px 12px;font-size:12px}
+.btn[disabled]{opacity:.4;cursor:default}
+.state{font-family:var(--f-mono);font-size:11px;letter-spacing:.18em;padding:3px 8px;border:1px solid var(--line);border-radius:2px}
+.state.tonight{background:var(--tape);border-color:var(--tape);color:#fff;animation:pulse 1.6s ease-in-out infinite}
+.state.played{border-color:var(--fg);color:var(--fg)}
+@keyframes pulse{50%{opacity:.55}}
+@media (prefers-reduced-motion:reduce){.state.tonight{animation:none}}
+
+/* section heads + chips */
+.head{text-align:center;padding-block:clamp(40px,7vw,90px) 28px}
+.head h2{margin:0;font-family:var(--f-mono);font-weight:400;font-size:clamp(24px,3.6vw,42px);letter-spacing:-.01em;line-height:1.1;text-transform:none}
+.head p{margin:8px 0 0;color:var(--dim);font-family:var(--f-mono);font-size:13px;max-width:52ch}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding-block:6px 22px;font-family:var(--f-mono);font-size:12px;letter-spacing:.12em}
+.chip{background:none;border:1px solid var(--line);padding:6px 12px;border-radius:2px;cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--fg);background:var(--fg);color:var(--ink)}
+.chips{gap:clamp(14px,3vw,36px);font-size:15px;font-weight:300;letter-spacing:.02em}
+.chips .chip{border:0;border-radius:0;padding:0 0 3px;color:var(--dim);border-bottom:1px solid transparent}
+.chips .chip:hover{color:var(--fg)}
+.chips .chip[aria-pressed="true"]{background:none;color:var(--fg);border-bottom-color:var(--fg)}
+
+/* show header */
+.showhead{display:grid;grid-template-columns:auto minmax(0,1fr);gap:28px;align-items:center;padding-block:48px 28px;border-bottom:1px solid var(--line)}
+.showhead .d .n{font-size:clamp(40px,6vw,64px)}
+.showhead .d .m,.showhead .d .y{font-size:18px}
+.showhead h2{margin:0 0 6px;font-family:var(--f-mono);font-weight:300;font-size:clamp(22px,3.2vw,36px);letter-spacing:-.03em;line-height:1}
+.back{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;color:var(--dim);text-decoration:none;display:inline-block;margin-top:28px}
+.back:hover{color:var(--fg)}
+.tabs{display:flex;gap:0;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:22px}
+.tab{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:16px 18px 12px 0;margin-right:22px;font-family:var(--f-mono);font-size:13px;letter-spacing:.14em;cursor:pointer;color:var(--dim)}
+.tab[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--fg)}
+.tab .c{font-variant-numeric:tabular-nums;opacity:.7;margin-left:6px}
+.tab{text-decoration:none}
+.bar{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.bar p{margin:0;color:var(--dim);font-family:var(--f-mono);font-size:13px;max-width:56ch}
+
+/* gallery */
+.grid{columns:3 260px;column-gap:12px;margin-bottom:72px}
+.tile{break-inside:avoid;margin:0 0 12px;position:relative;cursor:zoom-in;background:var(--deep);border-radius:2px;overflow:hidden;display:block;width:100%;border:0;padding:0;text-align:left}
+.tile img,.tile video{display:block;width:100%;height:auto}
+.tile .cap{position:absolute;inset:auto 0 0;padding:28px 12px 10px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.7));font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;display:flex;justify-content:space-between;gap:8px;opacity:0;transition:opacity .2s}
+.tile:hover .cap,.tile:focus-visible .cap{opacity:1}
+.tile .vid{position:absolute;top:10px;right:10px;font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;color:#fff;background:rgba(0,0,0,.6);padding:3px 7px;border-radius:2px}
+.empty{border:1px dashed var(--line);padding:56px 24px;text-align:center;font-family:var(--f-mono);color:var(--dim);font-size:13px;margin-bottom:72px;display:grid;gap:14px;justify-items:center}
+.empty strong{color:var(--fg);font-weight:400;font-size:16px;letter-spacing:.04em}
+/* photobooth */
+.booth{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:32px;align-items:start;margin-bottom:72px}
+.stage{display:grid;justify-items:center;gap:12px;min-width:0}
+.stage canvas{max-width:100%;max-height:78vh;width:auto;height:auto;touch-action:none;cursor:grab;border:1px solid var(--line)}
+.stage canvas.drag{cursor:grabbing}
+.stage .hint{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;color:var(--dim);margin:0;text-align:center}
+.ctrl{display:grid;gap:22px;font-family:var(--f-mono)}
+.ctrl .grp{display:grid;gap:8px}
+.ctrl .lbl{font-size:11px;letter-spacing:.16em;color:var(--dim)}
+.ctrl select{background:var(--ink);border:1px solid var(--line);padding:10px 12px;border-radius:2px;font-family:var(--f-mono);font-size:13px}
+.seg{display:flex;gap:6px}
+.seg .chip{flex:1}
+.slots{display:grid;gap:6px}
+.slot{display:flex;gap:6px}
+.slot .chip{flex:1;text-align:left}
+.slot .chip.clr{flex:0 0 auto}
+@media (max-width:820px){.booth{grid-template-columns:1fr}.stage canvas{max-height:70vh}}
+
+.droplink{background:none;border:0;padding:0 0 3px;border-bottom:1px solid var(--fg);font-family:var(--f-mono);font-weight:300;font-size:15px;cursor:pointer;color:var(--fg)}
+.droplink .mob{display:none}
+@media (hover:none),(max-width:640px){.droplink .desk{display:none}.droplink .mob{display:inline}}
+.dragcover{position:fixed;inset:0;z-index:25;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:clamp(28px,5vw,56px);font-weight:300;outline:2px dashed var(--fg);outline-offset:-16px;pointer-events:none}
+/* review queue */
+.queue{border:1px solid var(--tape);padding:18px;margin-bottom:28px;display:grid;gap:14px}
+.queue h3{margin:0;font-family:var(--f-mono);font-weight:400;font-size:13px;letter-spacing:.16em;color:var(--fg)}
+.qlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.qitem{display:grid;gap:8px;font-family:var(--f-mono);font-size:11px;color:var(--dim);min-width:0}
+.qitem img,.qitem video{width:100%;aspect-ratio:4/5;object-fit:cover;background:var(--deep);border-radius:2px}
+.qitem .acts{display:flex;gap:6px}
+.qitem p{margin:0;overflow-wrap:anywhere}
+
+/* sheet + lightbox */
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(255,255,255,.94);display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.panel{width:min(520px,100%);max-height:100%;overflow:auto;background:var(--ink);border:1px solid var(--line);padding:26px;display:grid;gap:16px}
+.panel h3{margin:0;font-family:var(--f-mono);font-weight:300;font-size:26px;letter-spacing:-.02em}
+.panel label{display:grid;gap:6px;font-family:var(--f-mono);font-size:11px;letter-spacing:.16em;color:var(--dim)}
+.panel input[type=text],.panel select,.panel textarea{background:var(--ink);border:1px solid var(--line);padding:11px 12px;border-radius:2px;font-family:var(--f-mono);font-size:14px;letter-spacing:0;color:var(--fg)}
+.panel textarea{resize:vertical;min-height:70px}
+.drop{border:1px dashed var(--dim);padding:26px;text-align:center;cursor:pointer;font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;color:var(--dim);display:grid;gap:10px;justify-items:center}
+.drop img,.drop video{max-height:220px;width:auto;max-width:100%}
+.drop input{position:absolute;width:1px;height:1px;opacity:0}
+.panel .row2{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.panel .note{margin:0;font-family:var(--f-mono);font-size:11px;color:var(--dim)}
+.err{color:#c0271f;font-family:var(--f-mono);font-size:12px;margin:0}
+.lb{position:relative;max-width:min(1100px,100%);max-height:100%;display:grid;gap:12px}
+.lb img,.lb video{max-width:100%;max-height:78vh;margin:0 auto;display:block}
+.lb .info{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-family:var(--f-mono);font-size:12px;color:var(--dim)}
+.lb .info b{color:var(--fg);font-weight:400}
+.x{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));right:calc(14px + env(safe-area-inset-right,0px));background:none;border:1px solid var(--line);width:40px;height:40px;cursor:pointer;font-family:var(--f-mono);font-size:16px;z-index:21}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;background:var(--fg);color:var(--ink);font-family:var(--f-mono);font-size:13px;padding:10px 16px;border-radius:2px;max-width:calc(100% - 32px)}
+.status{font-family:var(--f-mono);font-size:12px;color:var(--dim);margin-bottom:12px}
+
+footer{border-top:1px solid var(--line);padding-block:26px 40px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;color:var(--dim)}
+footer a{text-decoration:none;color:var(--fg)}
+
+@media (max-width:640px){
+  .row{grid-template-columns:64px minmax(0,1fr)}
+  .row .btn{grid-column:1/-1;width:100%}
+  .d .n{font-size:30px}
+  .showhead{grid-template-columns:1fr;gap:12px}
+  .showhead .d{justify-items:start;display:flex;gap:10px;align-items:baseline}
+  .grid{columns:2 140px;column-gap:8px}.tile{margin-bottom:8px}
+  .tile .cap{opacity:1}
+}
+
+/* ---- minimal pass ---- */
+.hero{padding-block:clamp(48px,9vw,120px) clamp(28px,4vw,48px)}
+.hero h1{font-weight:300;font-size:15px;letter-spacing:.02em;text-transform:uppercase}
+.hero p{margin:6px 0 0;font-family:var(--f-mono);font-weight:300;font-size:13px;color:var(--dim)}
+.stops{display:grid;margin-bottom:clamp(64px,10vw,140px)}
+.stop{display:grid;grid-template-columns:minmax(0,1fr);justify-items:center;gap:2px;text-decoration:none;padding-block:clamp(10px,2vw,22px)}
+.when{font-family:var(--f-mono);font-weight:300;font-size:13px;letter-spacing:.06em;color:var(--dim);display:inline-flex;align-items:center;gap:8px}
+.town{font-family:var(--f-sans);font-weight:800;text-transform:uppercase;letter-spacing:-.045em;line-height:.88;font-size:clamp(44px,11vw,150px);text-align:center;transition:color .2s}
+.stops:hover .town{color:#cfcfcf}
+.stops .stop:hover .town,.stops .stop:focus-visible .town{color:var(--fg)}
+.stop.played .town{color:#bdbdbd}
+.live{width:8px;height:8px;border-radius:50%;background:var(--tape);display:inline-block;animation:pulse 1.6s ease-in-out infinite}
+.stop.tonight .when{color:var(--tape)}
+.showtop{display:flex;justify-content:center;align-items:center;gap:18px;padding-block:clamp(40px,7vw,90px) 6px}
+.showtop .back{margin:0;font-size:15px}
+.town.big{margin:0 0 clamp(24px,4vw,48px);display:block}
+.tabs{justify-content:center;border-bottom:0;gap:clamp(14px,3vw,36px);margin-bottom:28px}
+.tab{margin:0;padding:0 0 3px;border-bottom:1px solid transparent;font-size:15px;font-weight:300;letter-spacing:.02em}
+.tab[aria-selected="true"]{border-bottom-color:var(--fg)}
+.tab .c{display:none}
+.head{padding-block:clamp(48px,9vw,120px) 18px}
+.head h2{font-weight:300;font-size:15px;letter-spacing:.02em;text-transform:uppercase}
+.empty{border:0;padding:48px 0 96px;font-size:13px;font-weight:300}
+.grid{column-gap:6px}.tile{margin-bottom:6px;border-radius:0}
+footer{border-top:0;justify-content:center;padding-block:24px 40px;font-size:11px}
+.stage canvas{border:0;box-shadow:0 0 0 1px var(--line)}
+.ctrl .chip{border:0;border-bottom:1px solid transparent;border-radius:0;padding:0 0 3px;color:var(--dim);font-size:14px;background:none}
+.ctrl .chip:hover{color:var(--fg)}
+.ctrl .chip[aria-pressed="true"]{background:none;color:var(--fg);border-bottom-color:var(--fg)}
+.seg{gap:22px}.seg .chip{flex:0 0 auto}
+.slot .chip{flex:0 0 auto;color:var(--fg)}
+.slots{gap:10px}
+.ctrl select{border:0;border-bottom:1px solid var(--fg);border-radius:0;padding:6px 0;font-size:14px}
+@media (max-width:640px){.town{letter-spacing:-.04em}}
+.no-star .star,.no-star .dust{display:none}
+.dust{position:fixed;inset:0;width:100%;height:100%;z-index:14;pointer-events:none}
+.star{position:fixed;left:0;top:0;width:clamp(64px,7vw,96px);height:auto;z-index:15;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;will-change:transform;filter:drop-shadow(0 10px 14px rgba(0,0,0,.12))}
+@media (max-width:699px){
+  .hero{padding-block:28px 14px}
+  .stops{margin-bottom:24px;gap:0;min-height:calc(100svh - 250px);align-content:center}
+  .stop{padding-block:4px;justify-items:center}
+  .town{display:block;white-space:nowrap;text-align:center;line-height:.84;letter-spacing:-.04em}
+  .stops:hover .town{color:var(--fg)}
+  .stop.played .town{color:#bdbdbd}
+  .town.big{text-align:center;white-space:nowrap}
+  .showtop{justify-content:center;padding-block:28px 6px}
+}
+.in-show .top{display:none}
+.showtabs{padding-block:28px 12px;margin:0;flex-wrap:wrap}
+.showtabs .tab{color:var(--fg)}
+.showtabs .tab[aria-selected="false"]{color:var(--fg)}
+.showtabs .tab:hover{border-bottom-color:var(--dim)}
+.showtabs .tab[aria-selected="true"]{border-bottom-color:var(--fg)}
+.booth-back{justify-content:center}
+.back-btn{font-weight:400}
+.showtabs + .showtop{padding-block:clamp(40px,7vw,90px) 6px}
+@media (max-width:699px){.showtabs{gap:14px}.showtabs + .showtop{padding-block:28px 6px}}
+/* nav items read as separate links: no-wrap items with faint slashes between */
+nav[aria-label=Main],.showtabs{--g:clamp(26px,4vw,52px);gap:8px var(--g);justify-content:center}
+nav[aria-label=Main] a,.showtabs .tab{position:relative;white-space:nowrap}
+nav[aria-label=Main] a + a::before,.showtabs .tab + .tab::before{content:"/";position:absolute;left:calc(var(--g) / -2);transform:translateX(-50%);color:#c4c4c4;font-weight:300;pointer-events:none}
+@media (max-width:699px){nav[aria-label=Main],.showtabs{--g:22px;font-size:14px}.showtabs .tab{font-size:14px}}
+.years{display:flex;justify-content:center;gap:8px 26px;flex-wrap:wrap;padding-block:clamp(28px,5vw,56px) 0;font-family:var(--f-mono);font-weight:300;font-size:13px;color:var(--dim)}
+.years a{text-decoration:none;padding-bottom:2px;border-bottom:1px solid transparent;font-variant-numeric:tabular-nums}
+.years a:hover{color:var(--fg)}
+.years a[aria-current="page"]{color:var(--fg);border-bottom-color:var(--fg)}
+.years + .hero{padding-top:clamp(18px,3vw,40px)}
+.stops.archive:hover .town{color:var(--fg)}
+.stop.past{cursor:default;padding-block:clamp(6px,1.2vw,14px)}
+.archive .town{font-size:clamp(40px,7.5vw,108px)}
+.sold{font-weight:400;color:var(--tape)}
+.hero .tsub{margin:6px auto 0;max-width:46ch;font-family:var(--f-mono);font-weight:300;font-size:12px;color:var(--dim);text-wrap:balance}
+.wrap{display:flex;flex-direction:column;min-height:100svh}
+#app{flex:1 0 auto}
+footer{margin-top:auto;padding-block:40px max(20px,env(safe-area-inset-bottom,0px));font-size:11px;letter-spacing:.14em;color:var(--dim)}
+footer a{color:var(--fg);border-bottom:1px solid var(--fg);padding-bottom:1px}
+/* city filters: bold sans, not the mono nav look, with dots between */
+.chips{--cg:clamp(28px,4vw,48px);gap:10px var(--cg);padding-block:4px 30px;font-family:var(--f-sans)}
+.chips .chip{position:relative;white-space:nowrap;font-family:var(--f-sans);font-weight:800;font-size:clamp(17px,2.2vw,22px);letter-spacing:-.02em;color:#c2c2c2;border-bottom:0;padding:0}
+.chips .chip:hover{color:var(--fg)}
+.chips .chip[aria-pressed="true"]{color:var(--fg)}
+.chips .chip + .chip::before{content:"";position:absolute;left:calc(var(--cg) / -2);top:50%;width:5px;height:5px;border-radius:50%;background:#d6d6d6;transform:translate(-50%,-50%)}
+@media (max-width:699px){.chips{--cg:20px;flex-wrap:nowrap}.chips .chip{font-size:clamp(13px,4vw,16px)}}
+.terms{max-width:64ch;margin:0 auto;padding-block:clamp(40px,7vw,90px) 40px;font-family:var(--f-sans);font-size:15px;line-height:1.6}
+.terms h2{margin:0;text-align:center;font-family:var(--f-mono);font-weight:300;font-size:15px;letter-spacing:.02em;text-transform:uppercase}
+.terms .eff{text-align:center;margin:6px 0 36px;font-family:var(--f-mono);font-size:12px;color:var(--dim)}
+.terms h3{margin:28px 0 6px;font-family:var(--f-mono);font-weight:400;font-size:13px;letter-spacing:.04em;text-transform:uppercase}
+.terms p{margin:0 0 12px;color:#2a2a2a}
+.agree{text-align:center;margin:0 0 8px;font-family:var(--f-mono);font-weight:300;font-size:10px;color:#a8a8a8}
+.agree a{color:inherit}
+footer{gap:18px}
+footer .terms-link{color:var(--dim);border:0;letter-spacing:.14em}
+footer .terms-link:hover{color:var(--fg)}
+.team{display:grid;gap:44px;margin-bottom:60px}
+.team h3{margin:0 0 14px;text-align:center;font-family:var(--f-mono);font-weight:400;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.team h3 span{color:var(--dim);margin-left:6px;font-variant-numeric:tabular-nums}
+.team .none{text-align:center;margin:0;font-family:var(--f-mono);font-weight:300;font-size:13px;color:var(--dim)}
+.tpost{display:flex;justify-content:center;align-items:center;gap:20px;flex-wrap:wrap}
+.tpost select{background:var(--ink);border:0;border-bottom:1px solid var(--fg);padding:6px 0;font-family:var(--f-mono);font-size:14px}
+.tbtn{background:none;border:0;padding:0 0 2px;border-bottom:1px solid transparent;font-family:var(--f-mono);font-size:12px;color:var(--dim);cursor:pointer}
+.tbtn:hover{color:var(--fg);border-bottom-color:var(--fg)}
+.tbtn.ok{color:var(--fg);border-bottom-color:var(--fg)}
+.tbtn[disabled]{opacity:.4}
+.qitem .acts{gap:16px}
+.teamdot{position:fixed;right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:13;width:28px;height:28px;display:grid;place-items:center;text-decoration:none}
+.teamdot i{width:5px;height:5px;border-radius:50%;background:var(--fg);opacity:.14;transition:opacity .2s}
+.teamdot:hover i,.teamdot:focus-visible i{opacity:.6}
+.teamdot b{position:absolute;right:2px;top:-2px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--tape);color:#fff;font:600 10px/16px var(--f-sans);text-align:center}
+.role{text-align:center;margin:-14px 0 30px;font-family:var(--f-mono);font-weight:300;font-size:12px;color:var(--dim)}
+.access{max-width:56ch;margin:0 auto;font-size:14px;line-height:1.6;color:#333}
+.access p{margin:0 0 8px;text-align:center}
+.access ul{margin:0 0 8px;padding-left:18px}
+.access li{margin-bottom:4px}
+footer{flex-direction:column;align-items:center;gap:10px}
+footer .terms-link{color:#bdbdbd;font-size:10px}
+footer .terms-link:hover{color:var(--dim)}
+
+/* standalone site basics */
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font-size:14px}
+img{max-width:100%}
+.album + .grid{margin-bottom:24px}
+.album{margin:28px 0 12px;text-align:center;font-family:var(--f-mono);font-weight:400;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="top">
+    <nav aria-label="Main">
+      <a href="#tour" data-nav="tour">TOUR</a>
+      <a href="#fans" data-nav="fans">POV</a>
+      <a href="#content" data-nav="content">ROAD</a>
+      <a href="#booth" data-nav="booth">PHOTOBOOTH</a>
+    </nav>
+  </header>
+  <main id="app"></main>
+  <footer>
+    <a class="terms-link" href="#terms">TERMS</a>
+    <span>POWERED BY <a href="https://art-house.us" target="_blank" rel="noopener">ARTHOUSE</a></span>
+  </footer>
+</div>
+
+<input type="file" id="dropInput" accept="image/*,video/*" multiple hidden>
+<div class="dragcover" id="dragCover" hidden><span>DROP TO POST</span></div>
+
+<div class="overlay" id="lightbox" hidden>
+  <button class="x" id="lbClose" aria-label="Close">✕</button>
+  <div class="lb" id="lbBody"></div>
+</div>
+<canvas class="dust" id="dust" aria-hidden="true"></canvas>
+<img class="star" id="star" src="frames/star.png" alt="" aria-hidden="true" draggable="false">
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script type="module">
+import { SHOWS } from "/shows.js";
+(() => {
+  // ---- Tour routing (edit / extend here) ----
+  const MAX_BYTES = 150 * 1024 * 1024; // Dropbox direct-upload limit
+  const MON = ["JAN.","FEB.","MAR.","APR.","MAY","JUN.","JUL.","AUG.","SEP.","OCT.","NOV.","DEC."];
+
+  const $ = s => document.querySelector(s);
+  const app = $("#app");
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const byId = id => SHOWS.find(s => s.id === id);
+  const today = () => { const d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+  const status = s => s.date === today() ? "tonight" : (s.date < today() ? "played" : "upcoming");
+  const parts = s => { const [y,m,d] = s.date.split("-"); return {y, m:MON[+m-1], d:String(+d)}; };
+  const dateBlock = s => { const p = parts(s); return `<div class="d"><span class="m">${p.m}</span><span class="n">${p.d}</span><span class="y">${p.y}</span></div>`; };
+  const stateTag = s => { const st = status(s); return `<span class="state ${st}">${st === "tonight" ? "TONIGHT" : st === "played" ? "PLAYED" : "UPCOMING"}</span>`; };
+  const enc = encodeURIComponent;
+  const src = (r, size = "m") => r.type === "video" ? "/api/file?path=" + enc(r.path) : `/api/thumb?size=${size}&rev=${enc(r.rev || "")}&path=${enc(r.path)}`;
+  const isVid = r => String(r.type || "").startsWith("video");
+
+  // ---- state ----
+  const S = { fans:[], crew:[], inbox:[], loaded:{fans:false,crew:false}, stale:false, admin:false, canPost:false,
+              filter:{fans:"all",content:"all"}, showTab:"fans", crewer:false };
+
+  function toast(msg, ms = 3400){ const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, ms); }
+
+  // ---- views ----
+  // Past tours: dates only. Add a tour here and its year shows up in the picker.
+  const SHOW_ARCHIVE = false; // past tours are kept here but hidden; flip to true to bring them back
+  const ARCHIVE_ALL = [
+    { year: 2024, name: "Glory Nights Tour", sub: "KB · w/ nobigdyl., Limoblaze, WHATUPRG", shows: [
+      ["2024-04-04","Omaha"],["2024-04-05","Arden Hills"],["2024-04-06","Glenview"],["2024-04-07","Anderson"],["2024-04-09","Columbus"],
+      ["2024-04-11","Kansas City"],["2024-04-12","Allen"],["2024-04-13","Metairie"],["2024-04-14","Webster"],["2024-04-18","Roswell"],
+      ["2024-04-19","Winter Garden"],["2024-04-20","Hollywood"],["2024-04-21","Ponte Vedra Beach"],["2024-04-23","Nashville"],
+      ["2024-04-25","Bensalem"],["2024-04-26","Parsippany"],["2024-04-27","Vienna"],["2024-04-28","Charlotte"],
+      ["2024-05-17","Stockton"],["2024-05-18","Los Angeles"],["2024-05-19","Mesa"] ] },
+    { year: 2021, name: "We Are Unashamed Tour", sub: "1K Phew · Andy Mineo · Gawvi · Hulvey · Lecrae · Tedashii · Trip Lee · Wande · WHATUPRG", shows: [
+      ["2021-03-17","Austin"],["2021-03-18","Houston"],["2021-03-19","San Antonio"],["2021-03-24","Chicago"],["2021-03-25","Cincinnati"],
+      ["2021-03-26","Indianapolis"],["2021-03-27","Columbus"],["2021-03-31","St. Louis"],["2021-04-01","Tulsa"],["2021-04-02","Dallas"],
+      ["2021-04-07","Birmingham"],["2021-04-08","Jacksonville"],["2021-04-09","Ft. Lauderdale"],["2021-04-10","Orlando"] ] },
+    { year: 2019, name: "The Saint Holy Tour", shows: [
+      ["2019-07-31","Atlanta",1],["2019-08-22","Dallas",1],["2019-08-23","Houston",1],["2019-08-25","San Antonio",1],
+      ["2019-09-04","Los Angeles",1],["2019-09-06","San Jose"],["2019-09-08","Phoenix"],["2019-09-18","Kansas City"],
+      ["2019-09-21","Chicago",1],["2019-09-22","Toronto",1],["2019-09-24","Philadelphia"],["2019-09-26","Lynchburg"],
+      ["2019-10-05","Miami"],["2019-10-06","Orlando"] ] },
+    { year: 2018, name: "Better Late Than Never Tour", sub: "Lecrae + Andy Mineo · w/ WordsPlayed, nobigdyl., WHATUPRG", shows: [
+      ["2018-09-21","Kansas City"],["2018-09-23","Denver"],["2018-09-27","Spokane"],["2018-09-28","Seattle"],["2018-09-29","Vancouver"],["2018-09-30","Portland"],
+      ["2018-10-02","Sacramento"],["2018-10-03","San Francisco"],["2018-10-04","Fresno"],["2018-10-05","Los Angeles"],["2018-10-06","Riverside"],["2018-10-07","Phoenix"],
+      ["2018-10-11","Midland"],["2018-10-12","San Antonio"],["2018-10-13","Houston"],["2018-10-16","Oklahoma City"],["2018-10-18","Saint Paul"],["2018-10-19","Milwaukee"],
+      ["2018-10-22","Chicago"],["2018-10-23","Cincinnati"],["2018-10-24","Memphis"],["2018-10-26","Nashville"],["2018-10-29","Silver Spring"],["2018-10-30","Philadelphia"],
+      ["2018-11-01","Worcester"],["2018-11-02","New York"],["2018-11-03","Shippensburg"],["2018-11-05","Toronto"],["2018-11-06","Pittsburgh"],["2018-11-08","Detroit"],
+      ["2018-11-09","Indianapolis"],["2018-11-10","Columbus"],["2018-11-11","Grand Rapids"] ] },
+  ];
+  const ARCHIVE = SHOW_ARCHIVE ? ARCHIVE_ALL : [];
+  const CURRENT_YEAR = 2026;
+  const YEARS = [CURRENT_YEAR, ...ARCHIVE.map(t => t.year)].filter((y, i, a) => a.indexOf(y) === i).sort((a, b) => b - a);
+  function yearPicker(cur){
+    if (YEARS.length < 2) return "";
+    return `<nav class="years" aria-label="Year">${YEARS.map(y => `<a href="#${y === CURRENT_YEAR ? "tour" : "tour-" + y}" ${y === cur ? 'aria-current="page"' : ""}>${y}</a>`).join("")}</nav>`;
+  }
+  function viewTour(year){
+    year = year || CURRENT_YEAR;
+    if (year !== CURRENT_YEAR) {
+      const tours = ARCHIVE.filter(t => t.year === year);
+      return yearPicker(year) + tours.map(t => {
+        const rows = t.shows.map(([d, city, sold]) => {
+          const [, m, dd] = d.split("-");
+          return `<div class="stop past"><span class="when">${MON[+m-1].replace(".","")} ${+dd}${sold ? ` · <b class="sold">SOLD OUT</b>` : ""}</span><span class="town">${esc(city)}</span></div>`;
+        }).join("");
+        return `<section class="hero"><h1>${esc(t.name)}</h1>${t.sub ? `<p class="tsub">${esc(t.sub)}</p>` : ""}</section><div class="stops archive">${rows}</div>`;
+      }).join("");
+    }
+    const rows = SHOWS.map(s => {
+      const p = parts(s), st = status(s);
+      return `<a class="stop ${st}" href="#show-${s.id}">
+        <span class="when">${st === "tonight" ? `<i class="live" aria-hidden="true"></i>TONIGHT` : `${p.m.replace(".","")} ${p.d}`}</span>
+        <span class="town">${esc(s.city)}</span></a>`;
+    }).join("");
+    return `${yearPicker(CURRENT_YEAR)}<section class="hero"><h1>New Saint Holy Tour</h1></section>
+      <div class="stops">${rows}</div>`;
+  }
+
+  function chips(kind){
+    const cur = S.filter[kind];
+    const b = (id, label) => `<button class="chip" data-chip="${kind}" data-v="${id}" aria-pressed="${cur===id}">${label}</button>`;
+    return `<div class="chips" role="group" aria-label="Filter by show">${SHOWS.map(s => b(s.id, esc(s.city.toUpperCase()))).join("")}</div>`;
+  }
+
+  function gallery(list, emptyHtml){
+    if (!list.length) return `<div class="empty">${emptyHtml}</div>`;
+    return `<div class="grid">${list.map(r => {
+      const s = byId(r.show);
+      const media = isVid(r) ? `<video src="${src(r)}" muted playsinline preload="metadata"></video><span class="vid">VIDEO</span>` : `<img src="${src(r)}" alt="${esc("Photo from " + (s ? s.city : "the tour"))}" loading="lazy">`;
+      return `<button class="tile" data-open="${esc(r._kind)}:${esc(r._id)}">${media}<span class="cap"><span>${esc(r.album ? r.album.toUpperCase() : (r._kind === "crew" ? "ROAD" : "POV"))}</span><span>${s ? esc(s.city.toUpperCase()) : ""}</span></span></button>`;
+    }).join("")}</div>`;
+  }
+
+  function loadingNote(kind){
+    if (!S.loaded[kind]) return `<p class="status">${S.stale ? "Can't reach the wall right now. Showing what we have." : "Loading the wall…"}</p>`;
+    return "";
+  }
+
+  function queueHtml(showId){
+    return "";
+    const q = S.inbox.filter(r => !showId || r.show === showId);
+    if (!q.length) return "";
+    return `<div class="queue"><h3>REVIEW QUEUE · ${q.length} WAITING</h3><div class="qlist">${q.map(r => {
+      const s = byId(r.show);
+      const m = isVid(r) ? `<video src="${src(r)}" muted playsinline preload="metadata" controls></video>` : `<img src="${src(r)}" alt="">`;
+      return `<div class="qitem">${m}<p>${esc(s ? s.city : r.show)} · ${esc(r.handle || "no handle")}</p>${r.caption ? `<p>“${esc(r.caption)}”</p>` : ""}
+        <div class="acts"><button class="btn small solid" data-approve="${esc(r._id)}">Approve</button><button class="btn small" data-reject="${esc(r._id)}">Reject</button></div></div>`;
+    }).join("")}</div></div>`;
+  }
+
+  function fanSection(showId){
+    const list = S.fans.filter(r => !showId || r.show === showId);
+    const btn = S.canPost ? `<button class="droplink" data-drop="fans" data-show="${showId || ""}"><span class="desk">+ Drop yours anywhere</span><span class="mob">+ Add yours</span></button>` : "";
+    const s = showId && byId(showId);
+    const empty = s && status(s) === "upcoming"
+      ? `Opens ${parts(s).m.replace(".","")} ${parts(s).d}.`
+      : `Nothing yet.`;
+    return `${queueHtml(showId)}${btn ? `<div class="bar">${btn}</div>` : ""}${loadingNote("fans")}${gallery(list, empty)}${btn ? `<p class="agree">Uploading gives us the right to use and share it. <a href="#terms">Terms</a></p>` : ""}`;
+  }
+
+  function crewSection(showId){
+    const list = S.crew.filter(r => !showId || r.show === showId);
+    const btn = (S.admin || S.crewer) ? `<button class="droplink" data-drop="crew" data-show="${showId || ""}"><span class="desk">+ Drop content anywhere</span><span class="mob">+ Add content</span></button>` : "";
+    const albums = [...new Set(list.map(r => r.album || ""))];
+    const body = albums.length > 1 || (albums[0] || "")
+      ? albums.map(a => `<h4 class="album">${esc(a || "Road")}</h4>${gallery(list.filter(r => (r.album || "") === a), "")}`).join("")
+      : gallery(list, `Nothing yet.`);
+    return `${btn ? `<div class="bar">${btn}</div>` : ""}${loadingNote("crew")}${body}`;
+  }
+
+  function viewTerms(){
+    return `<article class="terms">
+      <h2>POV Terms</h2>
+      <p class="eff">New Saint Holy Tour · Effective November 3, 2026</p>
+      <p>These terms cover anything you post to POV on this site: photos, videos, captions and anything else you upload ("your content"). By posting, you agree to them. If you don't agree, don't post.</p>
+      <h3>1. Who "we" are</h3>
+      <p>"We" and "us" means WHATUPRG, the New Saint Holy Tour and its team, and ARTHOUSE, which runs this site, along with anyone working on our behalf.</p>
+      <h3>2. You give us the right to use what you post</h3>
+      <p>When you post, you give us a worldwide, royalty-free, non-exclusive, perpetual and irrevocable license to use your content in any way and in any media, now known or created later. That includes the right to host, store, display, copy, edit, crop, add frames or text to, combine with other content, publish, distribute, and share it with others to do the same.</p>
+      <p>This covers this site and anything beyond it: social media, recaps, music videos, merch, ads, promotion and other projects connected to WHATUPRG or the tour. We don't have to credit you, but we may tag or name you.</p>
+      <p>You don't get paid for any use of your content.</p>
+      <h3>3. Everyone can see it</h3>
+      <p>Approved posts are public. Anyone who visits can view them, and people may save, screenshot or share them. Once something is public, we can't control what others do with it.</p>
+      <h3>4. You still own it</h3>
+      <p>You keep ownership of your content and can keep using it however you like. You're sharing it with us under the license above, not handing it over.</p>
+      <h3>5. What you promise</h3>
+      <p>By posting, you confirm that you took the photo or video yourself, or have permission from whoever did. You have the right to give us the license above. Everyone who can be clearly identified in it is okay with it being posted and used this way, and a parent or guardian has agreed for anyone under 18. Your content doesn't break any law or anyone else's rights.</p>
+      <h3>6. What we don't allow</h3>
+      <p>No nudity or sexual content, hate, harassment, threats, violence or gore, illegal activity, spam, or anything that isn't from the show. Don't post other people's private information.</p>
+      <h3>7. We review everything</h3>
+      <p>Posts go up only after the tour team approves them. We can decline, edit or remove any post at any time, for any reason, without notice.</p>
+      <h3>8. Taking something down</h3>
+      <p>If you want a post of yours taken off this site, or something shows you without your permission, reach out through the booking page at whatuprg.com and tell us which post. We'll take it off the site. Taking a post down doesn't undo uses already made before the request, such as things already shared or printed.</p>
+      <h3>9. No guarantees</h3>
+      <p>The site is provided as it is. We don't promise it will always work, and we're not responsible for lost or damaged uploads. Keep your own copies.</p>
+      <h3>10. Changes</h3>
+      <p>We may update these terms. The date at the top shows the latest version. Posting after a change means you accept the new terms.</p>
+    </article>`;
+  }
+
+  function viewList(kind){
+    const f = S.filter[kind] === "all" ? null : S.filter[kind];
+    const title = kind === "fans" ? "POV" : "Road";
+    return `<div class="head"><h2>${title}</h2></div>${chips(kind)}${kind === "fans" ? fanSection(f) : crewSection(f)}`;
+  }
+
+  function viewShow(id){
+    const s = byId(id);
+    if (!s) return viewTour();
+    const nf = S.fans.filter(r => r.show === id).length, nc = S.crew.filter(r => r.show === id).length;
+    const t = S.showTab;
+    const p = parts(s), st = status(s);
+    return `<nav class="tabs showtabs" aria-label="${esc(s.city)}">
+        <a class="tab back-btn" href="#tour" data-back>← BACK</a>
+        <button class="tab" data-tab="fans" aria-selected="${t==="fans"}">POV</button>
+        <button class="tab" data-tab="content" aria-selected="${t==="content"}">ROAD</button>
+        <a class="tab" href="#booth" data-booth="${id}">PHOTOBOOTH</a>
+      </nav>
+      <div class="showtop"><span class="when">${st === "tonight" ? `<i class="live" aria-hidden="true"></i>TONIGHT` : `${p.m.replace(".","")} ${p.d} ${p.y}`}</span></div>
+      <h2 class="town big">${esc(s.city)}</h2>
+      ${t === "fans" ? fanSection(id) : crewSection(id)}`;
+  }
+
+  function route(){ const h = (location.hash || "#tour").slice(1); return h || "tour"; }
+  function render(){
+    const r = route();
+    const nav = (r.startsWith("show-") || r.startsWith("tour-")) ? "tour" : r;
+    document.querySelectorAll("nav a").forEach(a => a.toggleAttribute("aria-current", a.dataset.nav === nav) || a.dataset.nav === nav && a.setAttribute("aria-current","page"));
+    document.querySelectorAll("nav a").forEach(a => { if (a.dataset.nav === nav) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
+    document.body.classList.toggle("no-star", r === "booth" || r === "terms");
+    if (r === "booth") document.body.classList.remove("in-show");
+    if (r === "booth") { if (app.dataset.view !== "booth") { app.dataset.view = "booth"; mountBooth(); } return; }
+    app.dataset.view = r;
+    document.body.classList.toggle("in-show", r.startsWith("show-"));
+    app.innerHTML = r === "terms" ? viewTerms() : r === "fans" ? viewList("fans") : r === "content" ? viewList("content") : r.startsWith("show-") ? viewShow(r.slice(5)) : r.startsWith("tour-") ? viewTour(+r.slice(5)) : viewTour();
+    fitTowns();
+  }
+
+  // phones: stretch each city name to the full screen width
+  function fitTowns(){
+    const small = innerWidth < 700;
+    document.querySelectorAll(".stops .town, .town.big").forEach(el => {
+      if (!small) { el.style.fontSize = ""; return; }
+      el.style.fontSize = "100px";
+      const w = el.parentElement.clientWidth || innerWidth - 32;
+      el.style.fontSize = Math.floor(100 * w / el.scrollWidth) + "px";
+    });
+  }
+  addEventListener("resize", fitTowns);
+  if (document.fonts) document.fonts.ready.then(fitTowns);
+  window.addEventListener("hashchange", () => { S.showTab = "fans"; render(); window.scrollTo(0,0); });
+
+  document.querySelector("nav[aria-label=Main]").addEventListener("click", e => { if (e.target.closest("a")) { B.from = null; app.dataset.view = ""; } });
+  // ---- interactions ----
+  app.addEventListener("click", e => {
+    const bl = e.target.closest("[data-booth]"); if (bl){ B.show = bl.dataset.booth; B.from = bl.dataset.booth; app.dataset.view = ""; return; }
+    const c = e.target.closest("[data-chip]"); if (c){ const k = c.dataset.chip; S.filter[k] = S.filter[k] === c.dataset.v ? "all" : c.dataset.v; render(); return; }
+    const t = e.target.closest("[data-tab]"); if (t){ S.showTab = t.dataset.tab; render(); return; }
+    const sb = e.target.closest("[data-drop]"); if (sb){ pending = ctx(sb.dataset.drop, sb.dataset.show || null); $("#dropInput").click(); return; }
+    const o = e.target.closest("[data-open]"); if (o){ openLB(o.dataset.open); return; }
+  });
+
+  // lightbox
+  function openLB(key){
+    const [kind, id] = key.split(":");
+    const r = (kind === "crew" ? S.crew : S.fans).find(x => x._id === id); if (!r) return;
+    const s = byId(r.show);
+    $("#lbBody").innerHTML = (isVid(r) ? `<video src="${src(r)}" controls playsinline autoplay muted></video>` : `<img src="${src(r, "l")}" alt="">`) +
+      `<div class="info"><span><b>${esc(r.album || (kind === "crew" ? "ROAD" : "POV"))}</b></span><span>${s ? esc(s.city.toUpperCase() + ", " + s.st) + " · " + parts(s).m + " " + parts(s).d : ""}</span></div>`;
+    $("#lightbox").hidden = false;
+  }
+  const closeLB = () => { $("#lightbox").hidden = true; $("#lbBody").innerHTML = ""; };
+  $("#lbClose").onclick = closeLB;
+  $("#lightbox").addEventListener("click", e => { if (e.target.id === "lightbox") closeLB(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeLB(); });
+
+  // drop and go
+  function ctx(kindHint, showHint){
+    const r = route();
+    let kind = kindHint || (r === "content" ? "crew" : r.startsWith("show-") ? (S.showTab === "content" ? "crew" : "fans") : "fans");
+    if (kind === "content") kind = "crew";
+    let show = showHint || (r.startsWith("show-") ? r.slice(5) : (S.filter[kind === "crew" ? "content" : "fans"] !== "all" ? S.filter[kind === "crew" ? "content" : "fans"] : defaultShow()));
+    return {kind, show};
+  }
+  function defaultShow(){
+    const live = SHOWS.find(s => status(s) === "tonight"); if (live) return live.id;
+    const played = SHOWS.filter(s => status(s) === "played"); return (played[played.length-1] || SHOWS[0]).id;
+  }
+  let pending = null;
+  // Fan uploads go phone → Dropbox (POV/Inbox/<City>). Nothing is public until it's moved to POV/<City>.
+  function sendTo(link, file, onProgress){
+    return new Promise((resolve, reject) => {
+      const x = new XMLHttpRequest();
+      x.open("POST", link);
+      x.setRequestHeader("Content-Type", "application/octet-stream");
+      x.upload.onprogress = e => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
+      x.onload = () => (x.status >= 200 && x.status < 300 ? resolve() : reject(new Error(String(x.status))));
+      x.onerror = () => reject(new Error("network"));
+      x.send(file);
+    });
+  }
+  async function uploadFiles(files, c){
+    files = [...files].filter(f => /^(image|video)\//.test(f.type) || /\.(heic|heif|mov)$/i.test(f.name));
+    if (!files.length || c.kind !== "fans") return;
+    let ok = 0, big = 0, fail = 0;
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      if (f.size > MAX_BYTES) { big++; continue; }
+      const label = files.length > 1 ? `Uploading ${i+1} of ${files.length}` : "Uploading";
+      toast(label + "…");
+      try {
+        const r = await fetch("/api/upload-link", { method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ show: c.show, name: f.name, size: f.size, type: f.type }) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || !j.link) throw new Error(j.error || "link");
+        await sendTo(j.link, f, p => toast(`${label} · ${Math.round(p * 100)}%`));
+        ok++;
+      } catch { fail++; }
+    }
+    const city = (byId(c.show) || {}).city || "";
+    let msg = ok ? `Sent ${ok} to ${city}. It goes up once the crew approves it.` : "";
+    if (big) msg += ` ${big} over 150 MB skipped.`;
+    if (fail) msg += ` ${fail} didn't go through, try again.`;
+    toast(msg.trim(), 5000);
+  }
+  $("#dropInput").addEventListener("change", e => { const f = e.target.files; if (f && f.length && pending) uploadFiles(f, pending); e.target.value = ""; });
+  const canDropHere = () => { const r = route(); if (r === "booth" || r === "tour" || r === "terms") return false; const c = ctx(); return c.kind === "fans" ? S.canPost : (S.admin || S.crewer); };
+  let dragDepth = 0;
+  document.addEventListener("dragenter", e => { if (!e.dataTransfer || ![...e.dataTransfer.types].includes("Files") || !canDropHere()) return; dragDepth++; $("#dragCover").hidden = false; });
+  document.addEventListener("dragleave", () => { if (--dragDepth <= 0) { dragDepth = 0; $("#dragCover").hidden = true; } });
+  document.addEventListener("dragover", e => { if (canDropHere()) e.preventDefault(); });
+  document.addEventListener("drop", e => { e.preventDefault(); dragDepth = 0; $("#dragCover").hidden = true; if (canDropHere() && e.dataTransfer.files.length) uploadFiles(e.dataTransfer.files, ctx()); });
+
+
+  // ---- photobooth ----
+  // Custom photobooth frames per show: transparent PNG overlays, one full-bleed photo underneath.
+  // Each frame: a PNG overlay. `rects` = photo windows (back to front); no rects = one full-bleed photo.
+  const R3T = [{x:144,y:322,w:528,h:528,fill:"#bababa",lx:.3,ly:.2},{x:238,y:744,w:528,h:528,fill:"#7c7c7c",lx:.5,ly:.8},{x:408,y:480,w:528,h:528,fill:"#525252",lx:.5,ly:.5}];
+  const R3S = [{x:232,y:47,w:410,h:410,fill:"#bababa",lx:.3,ly:.2},{x:305,y:375,w:410,h:410,fill:"#7c7c7c",lx:.5,ly:.8},{x:437,y:169,w:410,h:410,fill:"#525252",lx:.5,ly:.5}];
+  const cityFrames = (key, black) => ({
+    tall: [{ name:"3 PHOTOS", src:`frames/${key}-3up-tall.png`, rects:R3T }, { name:"1 PHOTO", src:black }],
+    square: [{ name:"3 PHOTOS", src:`frames/${key}-3up-square.png`, rects:R3S }],
+  });
+  const FRAMES = {
+    "houston": cityFrames("houston", "frames/houston-tall.png"),
+    "fort-worth": cityFrames("dallas", "frames/dallas-tall.png"),
+    "san-antonio": cityFrames("san-antonio", "frames/san-antonio-tall.png"),
+  };
+  const frameCache = {};
+  function framesFor(){ return (FRAMES[B.show] || {})[B.fmt] || []; }
+  function frameFor(){
+    const list = framesFor(); if (!list.length) return null;
+    const f = list[Math.min(B.style, list.length - 1)];
+    if (!frameCache[f.src]) { const im = new Image(); im.onload = () => drawBooth(); im.src = f.src; frameCache[f.src] = im; }
+    return { img: frameCache[f.src], rects: f.rects };
+  }
+  const B = { show:null, fmt:"tall", style:0, bw:false, frames:[{},{},{}], pick:0, downloads:null };
+  const BG = "#ffffff", FG = "#111111", DIM = "#6b6b6b", TAPE = "#d3241c", SLOT = "#f0f0ee";
+  function boothLayout(){
+    const fr = frameFor();
+    if (fr) { const W = 1080, H = B.fmt === "tall" ? 1920 : 1080; return {W,H,frame:fr.img,rects:fr.rects || [{x:0,y:0,w:W,h:H,fill:"#141414"}]}; }
+    if (B.fmt === "tall") { const W=1080,H=1920,m=48,top=240,bot=230,g=24,fh=(H-top-bot-2*g)/3;
+      return {W,H,head:top,foot:H-bot,rects:[0,1,2].map(i=>({x:m,y:top+i*(fh+g),w:W-2*m,h:fh}))}; }
+    const W=1080,H=1080,m=40,top=170,bot=170,g=16,fw=(W-2*m-2*g)/3;
+    return {W,H,head:top,foot:H-bot,rects:[0,1,2].map(i=>({x:m+i*(fw+g),y:top,w:fw,h:H-top-bot}))};
+  }
+  function mountBooth(){
+    if (!B.show) B.show = defaultShow();
+    app.innerHTML = `${B.from && byId(B.from) ? `<nav class="tabs showtabs booth-back"><a class="tab back-btn" href="#show-${B.from}">← BACK TO ${esc(byId(B.from).city.toUpperCase())}</a></nav>` : ""}<div class="head"><h2>Photobooth</h2></div>
+      <div class="booth">
+        <div class="stage"><canvas id="bc" aria-label="Photobooth card preview"></canvas><p class="hint">DRAG A PHOTO TO REFRAME IT</p></div>
+        <div class="ctrl">
+          <div class="grp"><label class="lbl" for="bShow">SHOW</label><select id="bShow">${SHOWS.map(s=>`<option value="${s.id}">${parts(s).m} ${parts(s).d} · ${esc(s.city)}, ${s.st}</option>`).join("")}</select></div>
+          <div class="grp"><span class="lbl">FORMAT</span><div class="seg"><button class="chip" data-fmt="tall">TALL</button><button class="chip" data-fmt="square">1:1</button></div></div>
+          <div class="grp" id="bStyleGrp" hidden><span class="lbl">LAYOUT</span><div class="seg" id="bStyle"></div></div>
+          <div class="grp"><span class="lbl">COLOR</span><div class="seg"><button class="chip" data-bw="0">COLOR</button><button class="chip" data-bw="1">B&amp;W</button></div></div>
+          <div class="grp"><span class="lbl">PHOTOS</span><div class="slots" id="bSlots"></div></div>
+          <button class="btn solid" id="bSave">Save card</button>
+          <input type="file" id="bFile" accept="image/*" hidden>
+        </div>
+      </div>`;
+    $("#bShow").value = B.show;
+    $("#bShow").onchange = e => { B.show = e.target.value; syncBooth(); };
+    app.querySelectorAll("[data-fmt]").forEach(b => b.onclick = () => { B.fmt = b.dataset.fmt; syncBooth(); });
+    app.querySelectorAll("[data-bw]").forEach(b => b.onclick = () => { B.bw = b.dataset.bw === "1"; syncBooth(); });
+    $("#bFile").onchange = e => { const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+      const img = new Image(); img.onload = () => { B.frames[B.pick] = {img, ox:.5, oy:.5}; syncBooth(); }; img.src = URL.createObjectURL(f); };
+    $("#bSave").onclick = saveCard;
+    wireCanvas($("#bc"));
+    syncBooth();
+    const fontsReady = document.fonts ? Promise.all(['700 40px Inter','800 40px Inter','300 40px "Source Code Pro"','400 40px "Source Code Pro"'].map(f=>document.fonts.load(f).catch(()=>{}))) : Promise.resolve();
+    fontsReady.then(() => drawBooth());
+  }
+  function syncBooth(){
+    app.querySelectorAll("[data-fmt]").forEach(b => b.setAttribute("aria-pressed", b.dataset.fmt === B.fmt));
+    const styles = framesFor();
+    $("#bStyleGrp").hidden = styles.length < 2;
+    $("#bStyle").innerHTML = styles.map((f,i) => `<button class="chip" data-style="${i}" aria-pressed="${i === Math.min(B.style, styles.length - 1)}">${f.name}</button>`).join("");
+    $("#bStyle").onclick = e => { const b = e.target.closest("[data-style]"); if (b){ B.style = +b.dataset.style; syncBooth(); } };
+    app.querySelectorAll("[data-bw]").forEach(b => b.setAttribute("aria-pressed", (b.dataset.bw === "1") === B.bw));
+    const n = boothLayout().rects.length;
+    $("#bSlots").innerHTML = B.frames.slice(0, n).map((f,i)=>`<div class="slot"><button class="chip" data-slot="${i}">${f.img ? "PHOTO "+(i+1)+" · REPLACE" : "+ ADD PHOTO "+(i+1)}</button>${f.img ? `<button class="chip clr" data-clear="${i}" aria-label="Remove photo ${i+1}">✕</button>` : ""}</div>`).join("");
+    $("#bSlots").onclick = e => { const s = e.target.closest("[data-slot]"); if (s){ B.pick = +s.dataset.slot; $("#bFile").click(); }
+      const c = e.target.closest("[data-clear]"); if (c){ B.frames[+c.dataset.clear] = {}; syncBooth(); } };
+    drawBooth();
+  }
+  function cover(img, r, f){
+    const sc = Math.max(r.w/img.naturalWidth, r.h/img.naturalHeight);
+    const w = img.naturalWidth*sc, h = img.naturalHeight*sc;
+    return {w, h, x: r.x - (w-r.w)*f.ox, y: r.y - (h-r.h)*f.oy};
+  }
+  function drawBooth(cv = $("#bc"), forExport = false){
+    if (!cv) return;
+    const L = boothLayout(), s = byId(B.show) || SHOWS[0], p = parts(s);
+    cv.width = L.W; cv.height = L.H;
+    const x = cv.getContext("2d");
+    x.fillStyle = BG; x.fillRect(0,0,L.W,L.H);
+    // atmosphere glow
+    const glow = (cx,cy,r,col)=>{ const g=x.createRadialGradient(cx,cy,0,cx,cy,r); g.addColorStop(0,col); g.addColorStop(1,"rgba(4,6,12,0)"); x.fillStyle=g; x.fillRect(0,0,L.W,L.H); };
+    // frames
+    L.rects.forEach((r,i)=>{
+      const f = B.frames[i];
+      x.save(); x.beginPath(); x.rect(r.x,r.y,r.w,r.h); x.clip();
+      if (f.img){ const d = cover(f.img,r,f); x.drawImage(f.img,d.x,d.y,d.w,d.h);
+        if (B.bw){ const id = x.getImageData(r.x|0,r.y|0,Math.ceil(r.w),Math.ceil(r.h)), a = id.data;
+          for (let k=0;k<a.length;k+=4){ let v = .299*a[k]+.587*a[k+1]+.114*a[k+2]; v = Math.max(0,Math.min(255,(v-128)*1.12+128)); a[k]=a[k+1]=a[k+2]=v; }
+          x.putImageData(id,r.x|0,r.y|0); } }
+      else { x.fillStyle = SLOT; x.fillRect(r.x,r.y,r.w,r.h);
+        if (L.frame){ x.fillStyle=r.fill||"#141414"; x.fillRect(r.x,r.y,r.w,r.h); if (!forExport){ x.fillStyle=r.fill==="#bababa"?"#4a4a4a":"#e6e6e6"; x.font=`400 ${Math.round(Math.min(30, r.w*.055))}px "Source Code Pro", monospace`; x.textAlign="center"; x.fillText("+ ADD PHOTO "+(L.rects.length>1?i+1:""), r.x+r.w*(r.lx??.5), r.y+r.h*(r.ly??.3)); x.textAlign="left"; } }
+        else if (!forExport){ x.strokeStyle="rgba(0,0,0,.25)"; x.setLineDash([10,10]); x.lineWidth=2; x.strokeRect(r.x+12,r.y+12,r.w-24,r.h-24); x.setLineDash([]);
+          x.fillStyle=DIM; x.font='400 24px "Source Code Pro", monospace'; x.textAlign="center"; x.fillText("+ ADD PHOTO", r.x+r.w/2, r.y+r.h/2+8); x.textAlign="left"; } }
+      x.restore();
+    });
+    if (L.frame) { if (L.frame.complete && L.frame.naturalWidth) x.drawImage(L.frame, 0, 0, L.W, L.H); return; }
+    // header + footer
+    const sq = B.fmt === "square", m = sq ? 40 : 48;
+    x.fillStyle=FG; x.font=`300 ${sq?48:60}px "Source Code Pro", monospace`; x.fillText("New Saint Holy Tour", m, L.head*.62);
+    // footer: stacked date + city
+    const fy = L.foot + (sq?28:40);
+    x.fillStyle=FG; x.textAlign="center"; x.font=`700 ${sq?24:28}px Inter, Arial, sans-serif`; x.fillText(p.m, m+56, fy+ (sq?20:24));
+    x.font=`800 ${sq?66:80}px Inter, Arial, sans-serif`; x.fillText(p.d, m+56, fy+(sq?84:104));
+    x.font=`700 ${sq?24:28}px Inter, Arial, sans-serif`; x.fillText(p.y, m+56, fy+(sq?114:140)); x.textAlign="left";
+    const tx = m+150;
+    x.font=`300 ${sq?44:56}px "Source Code Pro", monospace`; x.letterSpacing="-1px"; x.fillText(`${s.city}, ${s.st}`, tx, fy+(sq?62:76)); x.letterSpacing="0px";
+    x.fillStyle=DIM; x.font=`400 ${sq?18:22}px "Source Code Pro", monospace`; x.letterSpacing="4px"; x.fillText("WHATUPRG · 2026", tx, fy+(sq?100:124)); x.letterSpacing="0px";
+  }
+  function wireCanvas(cv){
+    let drag = null;
+    const pt = e => { const b = cv.getBoundingClientRect(); return {x:(e.clientX-b.left)*cv.width/b.width, y:(e.clientY-b.top)*cv.height/b.height}; };
+    const hit = q => { const rs = boothLayout().rects; for (let i = rs.length - 1; i >= 0; i--) { const r = rs[i]; if (q.x>=r.x && q.x<=r.x+r.w && q.y>=r.y && q.y<=r.y+r.h) return i; } return -1; };
+    cv.addEventListener("pointerdown", e => { const q = pt(e), i = hit(q); if (i<0) return;
+      if (!B.frames[i].img){ B.pick = i; $("#bFile").click(); return; }
+      drag = {i, q}; cv.setPointerCapture(e.pointerId); cv.classList.add("drag"); });
+    cv.addEventListener("pointermove", e => { if (!drag) return; const q = pt(e), f = B.frames[drag.i], r = boothLayout().rects[drag.i], d = cover(f.img,r,f);
+      const ow = d.w - r.w, oh = d.h - r.h;
+      if (ow > 0) f.ox = Math.min(1, Math.max(0, f.ox - (q.x-drag.q.x)/ow));
+      if (oh > 0) f.oy = Math.min(1, Math.max(0, f.oy - (q.y-drag.q.y)/oh));
+      drag.q = q; drawBooth(); });
+    const end = () => { drag = null; cv.classList.remove("drag"); };
+    cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
+  }
+  async function saveCard(){
+    if (!B.frames.slice(0, boothLayout().rects.length).some(f => f.img)) { toast("Add a photo first."); return; }
+    const cv = document.createElement("canvas"); drawBooth(cv, true);
+    const blob = await new Promise(r => cv.toBlob(r, "image/png"));
+    const s = byId(B.show) || SHOWS[0];
+    const name = `new-saint-holy-${s.id}-${B.fmt}.png`;
+    const file = new File([blob], name, { type: "image/png" });
+    // Phones: open the share sheet so it can go straight to Photos or Instagram.
+    if (navigator.canShare && navigator.canShare({ files: [file] }) && matchMedia("(hover: none)").matches) {
+      try { await navigator.share({ files: [file], title: "New Saint Holy Tour" }); return; }
+      catch (err) { if (err && err.name === "AbortError") return; }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+    toast("Card saved.");
+  }
+
+  render();
+
+  // ---- live data (from Dropbox through /api/media) ----
+  S.canPost = true;
+  async function load(section, key, kind){
+    try {
+      const r = await fetch(`/api/media?section=${section}`);
+      if (!r.ok) throw new Error();
+      const j = await r.json();
+      S[key] = (j.items || []).map(it => ({ ...it, _id: it.path, _kind: kind }));
+      S.stale = false;
+    } catch { S.stale = true; }
+    S.loaded[key] = true;
+    if (route() !== "booth") render();
+  }
+  const refresh = () => { load("pov", "fans", "fans"); load("road", "crew", "crew"); };
+  refresh();
+  setInterval(() => { if (document.visibilityState === "visible") refresh(); }, 60000);
+})();
+
+// floating star: drifts like a balloon, reacts to taps and to scrolling
+(() => {
+  const el = document.getElementById("star"); if (!el) return;
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const vv = window.visualViewport;
+  const view = () => ({ w: vv ? vv.width : innerWidth, h: vv ? vv.height : innerHeight });
+  let size = el.offsetWidth || 80;
+  el.addEventListener("load", () => { size = el.offsetWidth || size; });
+  addEventListener("resize", () => { size = el.offsetWidth || size; });
+  let { w: W0, h: H0 } = view();
+  let x = W0 * .7, y = H0 * .28, vx = 14, vy = -6, ang = -8, va = 0, t = Math.random() * 100, last = performance.now();
+  let breeze = Math.random() * 6.28;
+  // stardust: a light trail that sheds only after the star is touched
+  const cv = document.getElementById("dust"), cx = cv.getContext("2d"), dust = [];
+  let shed = 0;
+  const sizeCanvas = () => { const d = Math.min(2, devicePixelRatio || 1), { w, h } = view(); cv.width = Math.round(w * d); cv.height = Math.round(h * d); cx.setTransform(d, 0, 0, d, 0, 0); };
+  sizeCanvas(); addEventListener("resize", sizeCanvas);
+  const DUST = ["226,64,96", "255,190,205", "255,226,170", "255,255,255"];
+  function emit(n){
+    for (let i = 0; i < n && dust.length < 40; i++) {
+      const a = Math.random() * 6.28, sp = 8 + Math.random() * 30;
+      dust.push({ x: x + size * (.3 + Math.random() * .4), y: y + size * (.3 + Math.random() * .4),
+        vx: Math.cos(a) * sp - vx * .15, vy: Math.sin(a) * sp - vy * .15, life: 0, max: .6 + Math.random() * .9,
+        r: .6 + Math.random() * 1.6, c: DUST[(Math.random() * DUST.length) | 0], spark: Math.random() < .18 });
+    }
+  }
+  function drawDust(dt){
+    const { w, h } = view(); cx.clearRect(0, 0, w, h);
+    for (let i = dust.length - 1; i >= 0; i--) {
+      const p = dust[i]; p.life += dt; if (p.life >= p.max) { dust.splice(i, 1); continue; }
+      p.vx *= Math.pow(.25, dt); p.vy = p.vy * Math.pow(.25, dt) + 14 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+      const k = 1 - p.life / p.max, al = .4 * k * (p.life < .08 ? p.life / .08 : 1);
+      cx.fillStyle = `rgba(${p.c},${al.toFixed(3)})`;
+      if (p.spark) { const r = p.r * 2.6 * (.6 + .4 * k); cx.beginPath(); cx.moveTo(p.x, p.y - r); cx.lineTo(p.x + r * .22, p.y); cx.lineTo(p.x, p.y + r); cx.lineTo(p.x - r * .22, p.y); cx.closePath(); cx.fill(); cx.beginPath(); cx.moveTo(p.x - r, p.y); cx.lineTo(p.x, p.y + r * .22); cx.lineTo(p.x + r, p.y); cx.lineTo(p.x, p.y - r * .22); cx.closePath(); cx.fill(); }
+      else { cx.beginPath(); cx.arc(p.x, p.y, p.r * (.5 + .5 * k), 0, 6.28); cx.fill(); }
+    }
+  }
+  function kick(px, py, strong){
+    shed = Math.max(shed, strong ? .45 : .25); emit(strong ? 4 : 1);
+    let dx = x + size / 2 - px, dy = y + size / 2 - py; const d = Math.hypot(dx, dy) || 1; dx /= d; dy /= d;
+    const f = strong ? 380 : 180;
+    vx += dx * f; vy += dy * f - (strong ? 120 : 40);
+    va += (dx >= 0 ? 1 : -1) * (strong ? 720 : 300);
+  }
+  el.addEventListener("pointerdown", e => { e.preventDefault(); kick(e.clientX, e.clientY, true); });
+  el.addEventListener("pointerenter", e => { if (e.pointerType === "mouse") kick(e.clientX, e.clientY, false); });
+  // scrolling carries it: scroll down and it lags up, scroll up and it dips down
+  let lastY = scrollY;
+  addEventListener("scroll", () => {
+    const d = Math.max(-80, Math.min(80, scrollY - lastY)); lastY = scrollY;
+    vy -= d * 4; va += d * 1.5;
+  }, { passive: true });
+  function step(now){
+    const dt = Math.min(.033, (now - last) / 1000); last = now; t += dt;
+    const { w: W, h: H } = view();
+    if (!still) {
+      breeze += (Math.random() - .5) * dt * .8;
+      vx += Math.cos(breeze) * 10 * dt;
+      vy += Math.sin(breeze * .6) * 8 * dt;
+    }
+    // soft walls: a cushion pushes it back in, no hard bouncing
+    const m = Math.min(60, W * .08), k = 9;
+    const maxX = Math.max(m, W - size - m), maxY = Math.max(m, H - size - m);
+    if (x < m) vx += (m - x) * k * dt;
+    if (x > maxX) vx -= (x - maxX) * k * dt;
+    if (y < m) vy += (m - y) * k * dt;
+    if (y > maxY) vy -= (y - maxY) * k * dt;
+    // ease speed toward a lazy float
+    const sp = Math.hypot(vx, vy), target = still ? 0 : 16;
+    if (sp > .01) { const ns = sp + (target - sp) * Math.min(1, (sp > target ? 1.4 : .3) * dt); vx *= ns / sp; vy *= ns / sp; }
+    x += vx * dt; y += vy * dt;
+    // safety net if the screen shrank (phone toolbars, rotation)
+    x = Math.min(Math.max(x, -size * .3), W - size * .7);
+    y = Math.min(Math.max(y, -size * .3), H - size * .7);
+    va *= Math.pow(.2, dt);
+    ang = (ang + va * dt) % 360;
+    const sway = still ? 0 : Math.sin(t * 1.1) * 6, bob = still ? 0 : Math.sin(t * 1.7) * 5;
+    if (shed > 0) { shed -= dt; if (Math.random() < .22) emit(1); }
+    if (dust.length || shed > 0) drawDust(dt); else if (drawDust.dirty !== false) { drawDust(dt); drawDust.dirty = false; }
+    if (dust.length) drawDust.dirty = true;
+    el.style.transform = `translate3d(${x.toFixed(1)}px, ${(y + bob).toFixed(1)}px, 0) rotate(${(ang + sway).toFixed(1)}deg)`;
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+})();
+</script>
+
+</body>
+</html>
