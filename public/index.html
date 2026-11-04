@@ -335,12 +335,14 @@ img{max-width:100%}
 @media (prefers-reduced-motion:reduce){.pin img{transition:none}.pin.tonight img{animation:none}}
 .pin.side-r .lbl{right:auto;left:100%;justify-items:start}
 @media (max-width:699px){.pin{padding:7px !important}.pin img{width:18px}.pin .lbl{font-size:8px}.pin .lbl small{font-size:7px}}
-.mapscroll{position:relative}
-@media (max-width:699px){
-  .mapscroll{overflow-x:auto;margin-inline:calc(-1 * max(16px, env(safe-area-inset-left,0px)));scrollbar-width:none;-webkit-overflow-scrolling:touch}
-  .mapscroll::-webkit-scrollbar{display:none}
-  .mapscroll .txmap{width:170%;max-width:none}
-}
+@property --z{syntax:"<number>";inherits:true;initial-value:1}
+@property --tx{syntax:"<number>";inherits:true;initial-value:0}
+@property --ty{syntax:"<number>";inherits:true;initial-value:0}
+.mapview{position:relative;overflow:hidden;width:min(880px,100%);margin:0 auto;aspect-ratio:1600/1007}
+.mapview .txmap{position:absolute;inset:0;width:100%;margin:0;transform-origin:0 0;transform:translate(calc(var(--tx) * 1%),calc(var(--ty) * 1%)) scale(var(--z));transition:--z .7s cubic-bezier(.65,0,.35,1),--tx .7s cubic-bezier(.65,0,.35,1),--ty .7s cubic-bezier(.65,0,.35,1)}
+.mapview .pin{transform:translate(-50%,-50%) scale(calc(1 / var(--z)))}
+@media (max-width:699px){.mapview{width:auto;margin-inline:calc(-1 * max(16px, env(safe-area-inset-left,0px)))}}
+@media (prefers-reduced-motion:reduce){.mapview .txmap{transition:none}}
 </style>
 </head>
 <body>
@@ -463,6 +465,15 @@ import { SHOWS } from "/shows.js";
     return `<div class="chips" role="group" aria-label="Filter by show">${SHOWS.map(s => b(s.id, esc(s.city.toUpperCase()))).join("")}</div>`;
   }
 
+  // Zoom box (percent of the map) for a picked city: its state. Texas by default; a show can set `zoom: {x0,y0,x1,y1}`.
+  const TEXAS = { x0: 29.9, y0: 57.5, x1: 56.0, y1: 98.1 };
+  function zoomStyle(cur){
+    const s = cur !== "all" && byId(cur);
+    if (!s) return "--z:1;--tx:0;--ty:0";
+    const b = s.zoom || TEXAS, cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2;
+    const z = Math.min(100 / (b.x1 - b.x0), 100 / (b.y1 - b.y0)) * 0.86;
+    return `--z:${z.toFixed(3)};--tx:${(50 - cx * z).toFixed(2)};--ty:${(50 - cy * z).toFixed(2)}`;
+  }
   // Road: US map in the tour-tee sketch style, with a star per city. Tap a star to see that city.
   function roadMap(){
     const cur = S.filter.content;
@@ -471,13 +482,14 @@ import { SHOWS } from "/shows.js";
       return `<button class="pin ${on ? "on" : ""} ${st} side-${s.pin.side || "l"}" style="left:${s.pin.x}%;top:${s.pin.y}%" data-chip="content" data-v="${s.id}" aria-pressed="${on}" aria-label="${esc(s.city)}, ${p.m.replace(".","")} ${p.d}">
         <img src="/frames/star.png" alt=""><span class="lbl">${esc(s.city.toUpperCase())}<small>${st === "tonight" ? "TONIGHT" : p.m.replace(".","") + " " + p.d}</small></span></button>`;
     }).join("");
-    return `<div class="mapscroll"><div class="txmap ${cur !== "all" ? "picked" : ""}"><img class="tx" src="/frames/us.png" alt="Map of the United States with the tour stops">${pins}</div></div>
+    return `<div class="mapview"><div class="txmap ${cur !== "all" ? "picked" : ""}" style="${zoomStyle(cur)}"><img class="tx" src="/frames/us.png" alt="Map of the United States with the tour stops">${pins}</div></div>
       <p class="maphint">${cur === "all" ? "Tap a star" : "&nbsp;"}</p>`;
   }
 
   function updateRoadMap(){
     const cur = S.filter.content;
     $(".txmap").classList.toggle("picked", cur !== "all");
+    $(".txmap").setAttribute("style", zoomStyle(cur));
     document.querySelectorAll(".txmap .pin").forEach(p => { const on = p.dataset.v === cur; p.classList.toggle("on", on); p.setAttribute("aria-pressed", on); });
     $(".maphint").innerHTML = cur === "all" ? "Tap a star" : "&nbsp;";
     $("#listBody").innerHTML = crewSection(cur === "all" ? null : cur);
@@ -593,7 +605,6 @@ import { SHOWS } from "/shows.js";
     app.dataset.view = r;
     app.innerHTML = r === "terms" ? viewTerms() : r === "fans" ? viewList("fans") : r === "content" ? viewList("content") : r.startsWith("show-") ? viewShow(r.slice(5)) : r.startsWith("tour-") ? viewTour(+r.slice(5)) : viewTour();
     fitTowns();
-    const ms = $(".mapscroll"); if (ms && ms.scrollWidth > ms.clientWidth) ms.scrollLeft = ms.scrollWidth * 0.49 - ms.clientWidth / 2;  // phones: start on Texas
   }
 
   // phones: stretch each city name to the full screen width
