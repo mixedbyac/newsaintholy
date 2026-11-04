@@ -4,8 +4,8 @@
 import { HttpError } from "./_errors.js";
 
 function conn(env) {
-  const url = env.KV_REST_API_URL || env.UPSTASH_REDIS_REST_URL;
-  const token = env.KV_REST_API_TOKEN || env.UPSTASH_REDIS_REST_TOKEN;
+  const url = env.KV_REST_API_URL || env.STORAGE_REST_API_URL || env.UPSTASH_REDIS_REST_URL;
+  const token = env.KV_REST_API_TOKEN || env.STORAGE_REST_API_TOKEN || env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) throw new HttpError(503, "The site's database isn't connected yet. Add Upstash Redis in your hosting settings.");
   return { url: url.replace(/\/+$/, ""), token };
 }
@@ -27,4 +27,4 @@ export const kv = {
   async smembers(env, key) { return (await redis(env, "SMEMBERS", key)) || []; },
 };
 
-export const hasStore = (env) => !!((env.KV_REST_API_URL || env.UPSTASH_REDIS_REST_URL) && (env.KV_REST_API_TOKEN || env.UPSTASH_REDIS_REST_TOKEN));
+export const hasStore = (env) => !!((env.KV_REST_API_URL || env.STORAGE_REST_API_URL || env.UPSTASH_REDIS_REST_URL) && (env.KV_REST_API_TOKEN || env.STORAGE_REST_API_TOKEN || env.UPSTASH_REDIS_REST_TOKEN));
