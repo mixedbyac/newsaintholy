@@ -320,10 +320,10 @@ img{max-width:100%}
 .invlink input{width:min(520px,100%);font-family:var(--f-mono);font-size:12px;border:1px solid var(--line);padding:8px}
 .teamkey label{margin-top:6px}
 .teamkey input{width:min(300px,100%)}
-.txmap{position:relative;width:min(440px,86vw);margin:0 auto 4px;aspect-ratio:636/618}
+.txmap{position:relative;width:min(880px,100%);margin:0 auto 4px;aspect-ratio:1600/1007}
 .txmap .tx{width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none}
-.pin{position:absolute;transform:translate(-50%,-50%);-webkit-tap-highlight-color:transparent;outline-offset:2px;background:none;border:0;padding:6px;cursor:pointer;display:grid;place-items:center}
-.pin img{width:clamp(26px,5.5vw,38px);height:auto;will-change:transform;backface-visibility:hidden;transition:transform .25s cubic-bezier(.3,1.6,.5,1),opacity .2s;filter:drop-shadow(0 3px 6px rgba(0,0,0,.12))}
+.pin{position:absolute;transform:translate(-50%,-50%);padding:3px !important;-webkit-tap-highlight-color:transparent;outline-offset:2px;background:none;border:0;padding:6px;cursor:pointer;display:grid;place-items:center}
+.pin img{width:clamp(16px,2.6vw,30px);height:auto;will-change:transform;backface-visibility:hidden;transition:transform .25s cubic-bezier(.3,1.6,.5,1),opacity .2s;filter:drop-shadow(0 3px 6px rgba(0,0,0,.12))}
 .pin:hover img,.pin:focus-visible img{transform:scale(1.18) rotate(-8deg)}
 .pin.on img{transform:scale(1.35) rotate(-12deg)}
 .txmap.picked .pin:not(.on) img{opacity:.35}
@@ -333,6 +333,8 @@ img{max-width:100%}
 .pin.tonight img{animation:pulse 1.6s ease-in-out infinite}
 .maphint{text-align:center;margin:18px 0 26px;font-family:var(--f-mono);font-weight:300;font-size:11px;color:var(--dim)}
 @media (prefers-reduced-motion:reduce){.pin img{transition:none}.pin.tonight img{animation:none}}
+.pin.side-r .lbl{right:auto;left:100%;justify-items:start}
+@media (max-width:699px){.pin{padding:7px !important}.pin img{width:18px}.pin .lbl{font-size:8px}.pin .lbl small{font-size:7px}}
 </style>
 </head>
 <body>
@@ -455,15 +457,15 @@ import { SHOWS } from "/shows.js";
     return `<div class="chips" role="group" aria-label="Filter by show">${SHOWS.map(s => b(s.id, esc(s.city.toUpperCase()))).join("")}</div>`;
   }
 
-  // Road: Texas map with a star per city (outline from the tour tee). Tap a star to see that city.
+  // Road: US map in the tour-tee sketch style, with a star per city. Tap a star to see that city.
   function roadMap(){
     const cur = S.filter.content;
     const pins = SHOWS.filter(s => s.pin).map(s => {
       const on = cur === s.id, st = status(s), p = parts(s);
-      return `<button class="pin ${on ? "on" : ""} ${st}" style="left:${s.pin.x}%;top:${s.pin.y}%" data-chip="content" data-v="${s.id}" aria-pressed="${on}" aria-label="${esc(s.city)}, ${p.m.replace(".","")} ${p.d}">
+      return `<button class="pin ${on ? "on" : ""} ${st} side-${s.pin.side || "l"}" style="left:${s.pin.x}%;top:${s.pin.y}%" data-chip="content" data-v="${s.id}" aria-pressed="${on}" aria-label="${esc(s.city)}, ${p.m.replace(".","")} ${p.d}">
         <img src="/frames/star.png" alt=""><span class="lbl">${esc(s.city.toUpperCase())}<small>${st === "tonight" ? "TONIGHT" : p.m.replace(".","") + " " + p.d}</small></span></button>`;
     }).join("");
-    return `<div class="txmap ${cur !== "all" ? "picked" : ""}"><img class="tx" src="/frames/texas.png" alt="Map of Texas with the tour stops">${pins}</div>
+    return `<div class="txmap ${cur !== "all" ? "picked" : ""}"><img class="tx" src="/frames/us.png" alt="Map of the United States with the tour stops">${pins}</div>
       <p class="maphint">${cur === "all" ? "Tap a star" : "&nbsp;"}</p>`;
   }
 
