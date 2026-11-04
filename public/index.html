@@ -320,6 +320,19 @@ img{max-width:100%}
 .invlink input{width:min(520px,100%);font-family:var(--f-mono);font-size:12px;border:1px solid var(--line);padding:8px}
 .teamkey label{margin-top:6px}
 .teamkey input{width:min(300px,100%)}
+.txmap{position:relative;width:min(440px,86vw);margin:0 auto 4px;aspect-ratio:636/618}
+.txmap .tx{width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none}
+.pin{position:absolute;transform:translate(-50%,-50%);background:none;border:0;padding:6px;cursor:pointer;display:grid;place-items:center}
+.pin img{width:clamp(26px,5.5vw,38px);height:auto;transition:transform .25s cubic-bezier(.3,1.6,.5,1),opacity .2s;filter:drop-shadow(0 3px 6px rgba(0,0,0,.12))}
+.pin:hover img,.pin:focus-visible img{transform:scale(1.18) rotate(-8deg)}
+.pin.on img{transform:scale(1.35) rotate(-12deg)}
+.txmap.picked .pin:not(.on) img{opacity:.35}
+.pin .lbl{position:absolute;right:100%;top:50%;transform:translateY(-50%);white-space:nowrap;font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;color:var(--fg);display:grid;justify-items:end;line-height:1.3;pointer-events:none;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 6px #fff}
+.pin .lbl small{font-size:9px;color:var(--dim)}
+.pin.tonight .lbl small{color:var(--tape)}
+.pin.tonight img{animation:pulse 1.6s ease-in-out infinite}
+.maphint{text-align:center;margin:18px 0 26px;font-family:var(--f-mono);font-weight:300;font-size:11px;color:var(--dim)}
+@media (prefers-reduced-motion:reduce){.pin img{transition:none}.pin.tonight img{animation:none}}
 </style>
 </head>
 <body>
@@ -442,6 +455,18 @@ import { SHOWS } from "/shows.js";
     return `<div class="chips" role="group" aria-label="Filter by show">${SHOWS.map(s => b(s.id, esc(s.city.toUpperCase()))).join("")}</div>`;
   }
 
+  // Road: Texas map with a star per city (outline from the tour tee). Tap a star to see that city.
+  function roadMap(){
+    const cur = S.filter.content;
+    const pins = SHOWS.filter(s => s.pin).map(s => {
+      const on = cur === s.id, st = status(s), p = parts(s);
+      return `<button class="pin ${on ? "on" : ""} ${st}" style="left:${s.pin.x}%;top:${s.pin.y}%" data-chip="content" data-v="${s.id}" aria-pressed="${on}" aria-label="${esc(s.city)}, ${p.m.replace(".","")} ${p.d}">
+        <img src="/frames/star.png" alt=""><span class="lbl">${esc(s.city.toUpperCase())}<small>${st === "tonight" ? "TONIGHT" : p.m.replace(".","") + " " + p.d}</small></span></button>`;
+    }).join("");
+    return `<div class="txmap ${cur !== "all" ? "picked" : ""}"><img class="tx" src="/frames/texas.png" alt="Map of Texas with the tour stops">${pins}</div>
+      <p class="maphint">${cur === "all" ? "Tap a star" : `<button class="tbtn" data-chip="content" data-v="${esc(cur)}">Show all cities</button>`}</p>`;
+  }
+
   function gallery(list, emptyHtml){
     if (!list.length) return `<div class="empty">${emptyHtml}</div>`;
     return `<div class="grid">${list.map(r => {
@@ -518,7 +543,7 @@ import { SHOWS } from "/shows.js";
   function viewList(kind){
     const f = S.filter[kind] === "all" ? null : S.filter[kind];
     const title = kind === "fans" ? "POV" : "Road";
-    return `<div class="head"><h2>${title}</h2></div>${chips(kind)}${kind === "fans" ? fanSection(f) : crewSection(f)}`;
+    return `<div class="head"><h2>${title}</h2></div>${kind === "content" ? roadMap() : chips(kind)}${kind === "fans" ? fanSection(f) : crewSection(f)}`;
   }
 
   function viewShow(id){
@@ -544,7 +569,7 @@ import { SHOWS } from "/shows.js";
     const nav = (r.startsWith("show-") || r.startsWith("tour-")) ? "tour" : r;
     document.querySelectorAll("nav a").forEach(a => a.toggleAttribute("aria-current", a.dataset.nav === nav) || a.dataset.nav === nav && a.setAttribute("aria-current","page"));
     document.querySelectorAll("nav a").forEach(a => { if (a.dataset.nav === nav) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
-    document.body.classList.toggle("no-star", r === "booth" || r === "terms" || r.startsWith("team") || r.startsWith("join-"));
+    document.body.classList.toggle("no-star", r === "booth" || r === "terms" || r === "content" || r.startsWith("team") || r.startsWith("join-"));
     if (r === "booth") document.body.classList.remove("in-show");
     if (r === "booth") { if (app.dataset.view !== "booth") { app.dataset.view = "booth"; mountBooth(); } return; }
     document.body.classList.toggle("in-show", r.startsWith("show-"));
