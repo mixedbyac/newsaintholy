@@ -296,6 +296,30 @@ body{margin:0;font-size:14px}
 img{max-width:100%}
 .album + .grid{margin-bottom:24px}
 .album{margin:28px 0 12px;text-align:center;font-family:var(--f-mono);font-weight:400;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+
+.teamdot{position:fixed;right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:13;width:28px;height:28px;display:grid;place-items:center;text-decoration:none}
+.teamdot i{width:5px;height:5px;border-radius:50%;background:var(--fg);opacity:.14;transition:opacity .2s}
+.teamdot:hover i,.teamdot:focus-visible i{opacity:.6}
+.teamdot b{position:absolute;right:2px;top:-2px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--tape);color:#fff;font:600 10px/16px var(--f-sans);text-align:center}
+.teamkey{display:grid;justify-items:center;gap:12px;margin:10px auto 80px;font-family:var(--f-mono);font-size:12px;color:var(--dim)}
+.teamkey input,.tpost input{background:var(--ink);border:0;border-bottom:1px solid var(--fg);padding:6px 0;font-family:var(--f-mono);font-size:14px;color:var(--fg);text-align:center;min-width:0;width:min(260px,100%)}
+.tpost input{text-align:left}
+.role .tbtn{font-size:12px}
+.settings .steps{max-width:60ch;margin:0 auto 18px;padding-left:20px;font-size:13px;line-height:1.6;color:#333}
+.settings code{font-family:var(--f-mono);font-size:12px;background:var(--deep);padding:1px 4px;word-break:break-all}
+.okdot{color:#1f9d55 !important}
+.members{display:grid;gap:10px;max-width:640px;margin:0 auto 16px}
+.member{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+.member .who{flex:1;min-width:0;display:grid;font-size:14px}
+.member small{font-family:var(--f-mono);font-size:11px;color:var(--dim);overflow-wrap:anywhere}
+.member select,.invite select{background:var(--ink);border:0;border-bottom:1px solid var(--fg);font-family:var(--f-mono);font-size:12px;padding:4px 0}
+.rolepill{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.invite{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;align-items:center}
+.invite input{background:var(--ink);border:0;border-bottom:1px solid var(--fg);padding:6px 0;font-family:var(--f-mono);font-size:14px;width:min(240px,100%)}
+.invlink{display:grid;justify-items:center;gap:8px;margin-top:14px}
+.invlink input{width:min(520px,100%);font-family:var(--f-mono);font-size:12px;border:1px solid var(--line);padding:8px}
+.teamkey label{margin-top:6px}
+.teamkey input{width:min(300px,100%)}
 </style>
 </head>
 <body>
@@ -318,12 +342,14 @@ img{max-width:100%}
 </div>
 
 <input type="file" id="dropInput" accept="image/*,video/*" multiple hidden>
+<input type="file" id="teamFile" accept="image/*,video/*" multiple hidden>
 <div class="dragcover" id="dragCover" hidden><span>DROP TO POST</span></div>
 
 <div class="overlay" id="lightbox" hidden>
   <button class="x" id="lbClose" aria-label="Close">✕</button>
   <div class="lb" id="lbBody"></div>
 </div>
+<a class="teamdot" href="#team" aria-label="Team"><i></i><b id="teamCount" hidden></b></a>
 <canvas class="dust" id="dust" aria-hidden="true"></canvas>
 <img class="star" id="star" src="frames/star.png" alt="" aria-hidden="true" draggable="false">
 <div class="toast" id="toast" role="status" hidden></div>
@@ -421,7 +447,7 @@ import { SHOWS } from "/shows.js";
     return `<div class="grid">${list.map(r => {
       const s = byId(r.show);
       const media = isVid(r) ? `<video src="${src(r)}" muted playsinline preload="metadata"></video><span class="vid">VIDEO</span>` : `<img src="${src(r)}" alt="${esc("Photo from " + (s ? s.city : "the tour"))}" loading="lazy">`;
-      return `<button class="tile" data-open="${esc(r._kind)}:${esc(r._id)}">${media}<span class="cap"><span>${esc(r.album ? r.album.toUpperCase() : (r._kind === "crew" ? "ROAD" : "POV"))}</span><span>${s ? esc(s.city.toUpperCase()) : ""}</span></span></button>`;
+      return `<button class="tile" data-open="${esc(r._kind)}:${esc(r._id)}">${media}<span class="cap"><span>${r._kind === "crew" ? "ROAD" : "POV"}</span><span>${s ? esc(s.city.toUpperCase()) : ""}</span></span></button>`;
     }).join("")}</div>`;
   }
 
@@ -455,10 +481,7 @@ import { SHOWS } from "/shows.js";
   function crewSection(showId){
     const list = S.crew.filter(r => !showId || r.show === showId);
     const btn = (S.admin || S.crewer) ? `<button class="droplink" data-drop="crew" data-show="${showId || ""}"><span class="desk">+ Drop content anywhere</span><span class="mob">+ Add content</span></button>` : "";
-    const albums = [...new Set(list.map(r => r.album || ""))];
-    const body = albums.length > 1 || (albums[0] || "")
-      ? albums.map(a => `<h4 class="album">${esc(a || "Road")}</h4>${gallery(list.filter(r => (r.album || "") === a), "")}`).join("")
-      : gallery(list, `Nothing yet.`);
+    const body = gallery(list, `Nothing yet.`);
     return `${btn ? `<div class="bar">${btn}</div>` : ""}${loadingNote("crew")}${body}`;
   }
 
@@ -521,11 +544,12 @@ import { SHOWS } from "/shows.js";
     const nav = (r.startsWith("show-") || r.startsWith("tour-")) ? "tour" : r;
     document.querySelectorAll("nav a").forEach(a => a.toggleAttribute("aria-current", a.dataset.nav === nav) || a.dataset.nav === nav && a.setAttribute("aria-current","page"));
     document.querySelectorAll("nav a").forEach(a => { if (a.dataset.nav === nav) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
-    document.body.classList.toggle("no-star", r === "booth" || r === "terms");
+    document.body.classList.toggle("no-star", r === "booth" || r === "terms" || r.startsWith("team") || r.startsWith("join-"));
     if (r === "booth") document.body.classList.remove("in-show");
     if (r === "booth") { if (app.dataset.view !== "booth") { app.dataset.view = "booth"; mountBooth(); } return; }
-    app.dataset.view = r;
     document.body.classList.toggle("in-show", r.startsWith("show-"));
+    if (r.startsWith("team") || r.startsWith("join-")) { if (app.dataset.view !== "team") { app.dataset.view = "team"; T.mount(); } else if (!/^(INPUT|SELECT)$/.test((document.activeElement || {}).tagName || "")) T.draw(); return; }
+    app.dataset.view = r;
     app.innerHTML = r === "terms" ? viewTerms() : r === "fans" ? viewList("fans") : r === "content" ? viewList("content") : r.startsWith("show-") ? viewShow(r.slice(5)) : r.startsWith("tour-") ? viewTour(+r.slice(5)) : viewTour();
     fitTowns();
   }
@@ -560,7 +584,7 @@ import { SHOWS } from "/shows.js";
     const r = (kind === "crew" ? S.crew : S.fans).find(x => x._id === id); if (!r) return;
     const s = byId(r.show);
     $("#lbBody").innerHTML = (isVid(r) ? `<video src="${src(r)}" controls playsinline autoplay muted></video>` : `<img src="${src(r, "l")}" alt="">`) +
-      `<div class="info"><span><b>${esc(r.album || (kind === "crew" ? "ROAD" : "POV"))}</b></span><span>${s ? esc(s.city.toUpperCase() + ", " + s.st) + " · " + parts(s).m + " " + parts(s).d : ""}</span></div>`;
+      `<div class="info"><span><b>${kind === "crew" ? "ROAD" : "POV"}</b></span><span>${s ? esc(s.city.toUpperCase() + ", " + s.st) + " · " + parts(s).m + " " + parts(s).d : ""}</span></div>`;
     $("#lightbox").hidden = false;
   }
   const closeLB = () => { $("#lightbox").hidden = true; $("#lbBody").innerHTML = ""; };
@@ -618,12 +642,12 @@ import { SHOWS } from "/shows.js";
     toast(msg.trim(), 5000);
   }
   $("#dropInput").addEventListener("change", e => { const f = e.target.files; if (f && f.length && pending) uploadFiles(f, pending); e.target.value = ""; });
-  const canDropHere = () => { const r = route(); if (r === "booth" || r === "tour" || r === "terms") return false; const c = ctx(); return c.kind === "fans" ? S.canPost : (S.admin || S.crewer); };
+  const canDropHere = () => { const r = route(); if (r.startsWith("team")) return !!T.me && !!(T.status && T.status.dropbox); if (r === "booth" || r === "tour" || r === "terms") return false; const c = ctx(); return c.kind === "fans" ? S.canPost : (S.admin || S.crewer); };
   let dragDepth = 0;
   document.addEventListener("dragenter", e => { if (!e.dataTransfer || ![...e.dataTransfer.types].includes("Files") || !canDropHere()) return; dragDepth++; $("#dragCover").hidden = false; });
   document.addEventListener("dragleave", () => { if (--dragDepth <= 0) { dragDepth = 0; $("#dragCover").hidden = true; } });
   document.addEventListener("dragover", e => { if (canDropHere()) e.preventDefault(); });
-  document.addEventListener("drop", e => { e.preventDefault(); dragDepth = 0; $("#dragCover").hidden = true; if (canDropHere() && e.dataTransfer.files.length) uploadFiles(e.dataTransfer.files, ctx()); });
+  document.addEventListener("drop", e => { e.preventDefault(); dragDepth = 0; $("#dragCover").hidden = true; if (canDropHere() && e.dataTransfer.files.length) (route().startsWith("team") ? T.upload(e.dataTransfer.files) : uploadFiles(e.dataTransfer.files, ctx())); });
 
 
   // ---- photobooth ----
@@ -771,6 +795,185 @@ import { SHOWS } from "/shows.js";
     toast("Card saved.");
   }
 
+
+  // ---- team (corner dot): accounts, Dropbox settings, approve / pass fan POV, post to Road ----
+  const T = {
+    me: null, inbox: [], members: [], dbx: null, status: null, show: null, lastInvite: "", note: "",
+    get token(){ try { return localStorage.getItem("nsh-team") || ""; } catch { return T._t || ""; } },
+    set token(v){ T._t = v; try { v ? localStorage.setItem("nsh-team", v) : localStorage.removeItem("nsh-team"); } catch {} },
+    async call(action, extra = {}, raw = false){
+      const r = await fetch("/api/team", { method: "POST", headers: { "Content-Type": "application/json", "X-Team-Token": T.token }, body: JSON.stringify({ action, ...extra }) });
+      if (raw) { if (!r.ok) throw new Error(); return r; }
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) { const e = new Error(j.error || "Something went wrong."); e.status = r.status; if (r.status === 401 && T.me) { T.me = null; T.token = ""; } throw e; }
+      return j;
+    },
+    admin(){ return !!T.me && (T.me.role === "owner" || T.me.role === "admin"); },
+    async mount(){
+      const r = route();
+      if (r === "team-dropbox-connected") T.note = "Dropbox connected. Folders are ready.";
+      if (r === "team-dropbox-failed") T.note = "Dropbox didn't connect. Check the redirect URI and try again.";
+      T.draw();
+      try { T.status = await T.call("status"); } catch (e) { T.status = { error: e.message }; }
+      if (T.token && !T.me) { try { T.me = await T.call("me"); } catch { T.token = ""; } }
+      T.draw();
+      if (T.admin()) T.loadAdmin();
+    },
+    async loadAdmin(){
+      const [i, m, d] = await Promise.allSettled([T.call("inbox"), T.call("members"), T.call("dropbox-status")]);
+      T.inbox = i.value?.items || []; T.members = m.value?.members || []; T.dbx = d.value || null;
+      if (T.status && T.dbx) T.status.dropbox = T.dbx.connected;
+      T.badge(); if (route().startsWith("team") && !/^(INPUT|SELECT)$/.test((document.activeElement || {}).tagName || "")) T.draw();
+    },
+    badge(){ const b = $("#teamCount"); if (b) { b.hidden = !(T.admin() && T.inbox.length); b.textContent = T.inbox.length; } },
+    thumbs: {},
+    async thumb(it, el){
+      if (!it) return;
+      if (T.thumbs[it.path]) { el.src = T.thumbs[it.path]; return; }
+      try {
+        const r = await T.call("thumb", { path: it.path }, true);
+        const url = (r.headers.get("content-type") || "").includes("json") ? (await r.json()).link : URL.createObjectURL(await r.blob());
+        T.thumbs[it.path] = url; el.src = url;
+      } catch {}
+    },
+    form(id, fields, button){
+      return `<form class="teamkey" id="${id}">${fields.map(f => `<label for="${id}-${f[0]}">${f[1]}</label><input id="${id}-${f[0]}" name="${f[0]}" type="${f[2] || "text"}" ${f[3] || ""} required>`).join("")}
+        <button class="tbtn ok" type="submit">${button}</button><p class="err" id="${id}-err" hidden></p></form>`;
+    },
+    bind(id, fn){
+      const f = $("#" + id); if (!f) return;
+      f.onsubmit = async e => {
+        e.preventDefault(); const v = Object.fromEntries(new FormData(f)); const btn = f.querySelector("button[type=submit]"); if (btn) btn.disabled = true;
+        try { await fn(v); } catch (err) { const el = $("#" + id + "-err"); if (el) { el.textContent = err.message; el.hidden = false; } else toast(err.message); if (btn) btn.disabled = false; }
+      };
+    },
+    async signedIn(j){
+      T.token = j.token; T.me = await T.call("me");
+      if (!T.status || !T.status.setup) { try { T.status = await T.call("status"); } catch {} }
+      if (location.hash !== "#team") location.hash = "team"; else T.draw();
+      if (T.admin()) T.loadAdmin();
+    },
+    draw(){
+      const r = route(), head = `<div class="head"><h2>Team</h2></div>`, note = T.note ? `<p class="role">${esc(T.note)}</p>` : "";
+      if (r.startsWith("join-")) {
+        const code = r.slice(5);
+        app.innerHTML = head + `<p class="role" id="joinWho">Checking your invite…</p>` + T.form("joinForm", [["name", "Your name"], ["password", "Make a password (8+ characters)", "password", 'autocomplete="new-password" minlength="8"']], "Join the team");
+        T.call("invite-info", { code }).then(i => { const w = $("#joinWho"); if (w) w.textContent = `${i.email} · ${i.role === "admin" ? "Admin" : "Contributor"}`; })
+          .catch(e => { const w = $("#joinWho"); if (w) w.textContent = e.message; });
+        T.bind("joinForm", async v => T.signedIn(await T.call("join", { code, ...v })));
+        return;
+      }
+      if (!T.status) { app.innerHTML = head + `<p class="role">Loading…</p>`; return; }
+      if (T.status.error) { app.innerHTML = head + `<div class="empty">${esc(T.status.error)}</div>`; return; }
+      if (!T.status.setup) {
+        app.innerHTML = head + `<p class="role">First time here. Make the owner account. That's you.</p>` +
+          T.form("setupForm", [["code", "Setup code (from your hosting settings)", "password"], ["name", "Your name"], ["email", "Email", "email", 'autocomplete="email"'], ["password", "Password (8+ characters)", "password", 'autocomplete="new-password" minlength="8"']], "Create owner account");
+        T.bind("setupForm", async v => T.signedIn(await T.call("setup", v)));
+        return;
+      }
+      if (!T.me) {
+        app.innerHTML = head + note + T.form("loginForm", [["email", "Email", "email", 'autocomplete="email"'], ["password", "Password", "password", 'autocomplete="current-password"']], "Sign in");
+        T.bind("loginForm", async v => T.signedIn(await T.call("login", v)));
+        return;
+      }
+      const roleName = { owner: "Owner", admin: "Admin", contributor: "Contributor" }[T.me.role] || "";
+      const top = `<p class="role">${esc(T.me.name || T.me.email)} · ${roleName} · <button class="tbtn" data-team-out>Sign out</button></p>${note}`;
+      const sel = T.show || defaultShow();
+      const opts = SHOWS.map(s => `<option value="${s.id}" ${s.id === sel ? "selected" : ""}>${parts(s).m.replace(".", "")} ${parts(s).d} · ${esc(s.city)}</option>`).join("");
+      const dbxOk = !!T.status.dropbox;
+      const post = `<section><h3>Post to Road</h3>${dbxOk ? `<div class="tpost">
+          <select id="teamShow" aria-label="Show">${opts}</select>
+          <button class="droplink" data-team-add><span class="desk">+ Drop files anywhere, or click</span><span class="mob">+ Add files</span></button></div>
+          <p class="none">Goes into Dropbox › Road. Live on the site within a minute.</p>` : `<p class="none">Dropbox isn't connected yet.</p>`}</section>`;
+      if (!T.admin()) { app.innerHTML = head + top + `<div class="team">${post}</div>`; return; }
+
+      const d = T.dbx;
+      const redirect = (d && d.redirectUri) || location.origin + "/api/dropbox-callback";
+      const dropbox = `<section class="settings"><h3>Dropbox ${d && d.connected ? `<span class="okdot">● Connected</span>` : `<span>· not connected</span>`}</h3>
+        ${d && d.connected ? `<p class="none">${esc(d.account || "Connected")} · folder ${esc(d.root)}</p>
+          <div class="tpost"><button class="tbtn" data-dbx-connect>Reconnect</button>${T.me.role === "owner" ? `<button class="tbtn" data-dbx-off>Disconnect</button>` : ""}</div>` : `
+          <ol class="steps"><li>Go to <b>dropbox.com/developers/apps</b> → Create app → Scoped access → Full Dropbox.</li>
+          <li>Permissions tab: turn on <code>files.metadata.read</code>, <code>files.content.read</code>, <code>files.content.write</code>, then Submit.</li>
+          <li>Settings tab → OAuth 2 → Redirect URIs → add <code>${esc(redirect)}</code></li>
+          <li>Paste the App key and App secret below and save. Then tap Connect Dropbox and sign in to the Dropbox that should hold everything.</li></ol>
+          <form class="teamkey" id="dbxForm"><label for="dbx-appKey">App key</label><input id="dbx-appKey" name="appKey" value="${esc((d && d.appKey) || "")}" required>
+          <label for="dbx-appSecret">App secret</label><input id="dbx-appSecret" name="appSecret" type="password" placeholder="${d && d.hasApp ? "saved" : ""}">
+          <label for="dbx-root">Main folder</label><input id="dbx-root" name="root" value="${esc((d && d.root) || "/New Saint Holy")}">
+          <button class="tbtn ok" type="submit">Save</button><p class="err" id="dbxForm-err" hidden></p></form>
+          ${d && d.hasApp ? `<div class="tpost"><button class="droplink" data-dbx-connect>Connect Dropbox</button></div>` : ""}`}
+      </section>`;
+      const q = T.inbox;
+      const live = (list, label) => list.length ? `<div class="qlist">${list.map(x => `<div class="qitem">${x.type === "video" ? `<video src="${src(x)}" muted playsinline preload="metadata"></video>` : `<img src="${src(x, "s")}" alt="" loading="lazy">`}<p>${esc((byId(x.show) || {}).city || "")}</p><div class="acts"><button class="tbtn" data-team-down="${esc(x.path)}">Take down</button></div></div>`).join("")}</div>` : `<p class="none">Nothing ${label} yet.</p>`;
+      const members = `<section class="settings"><h3>Team <span>${T.members.length}</span></h3>
+        <div class="members">${T.members.map(m => `<div class="member"><span class="who">${esc(m.name || m.email)}<small>${esc(m.email)}${m.joined ? "" : " · invite sent"}</small></span>
+          ${m.role === "owner" ? `<span class="rolepill">Owner</span>` : `<select data-member-role="${esc(m.email)}" aria-label="Role for ${esc(m.email)}"><option value="admin" ${m.role === "admin" ? "selected" : ""}>Admin</option><option value="contributor" ${m.role === "contributor" ? "selected" : ""}>Contributor</option></select>
+          <button class="tbtn" data-member-remove="${esc(m.email)}">Remove</button>`}</div>`).join("")}</div>
+        <form class="invite" id="inviteForm"><input name="email" type="email" placeholder="Email" aria-label="Email to invite" required>
+          <select name="role" aria-label="Role"><option value="contributor">Contributor · posts to Road</option><option value="admin">Admin · everything</option></select>
+          <button class="tbtn ok" type="submit">Invite</button></form><p class="err" id="inviteForm-err" hidden></p>
+        ${T.lastInvite ? `<div class="invlink"><p class="none">Send them this link. It works once, for 14 days.</p><input readonly value="${esc(T.lastInvite)}" id="invLink" aria-label="Invite link"><button class="tbtn ok" data-copy-invite>Copy</button></div>` : ""}
+      </section>`;
+      app.innerHTML = head + top + `<div class="team">
+        ${dbxOk ? "" : dropbox}
+        ${dbxOk ? `<section><h3>POV waiting <span>${q.length}</span></h3>
+          ${q.length ? `<div class="qlist">${q.map((it, i) => `<div class="qitem">${it.type === "video" ? `<video data-tthumb="${i}" muted playsinline controls preload="metadata"></video>` : `<img data-tthumb="${i}" alt="">`}<p>${esc((byId(it.show) || {}).city || "")}</p>
+            <div class="acts"><button class="tbtn ok" data-team-ok="${i}">👍 Approve</button><button class="tbtn" data-team-pass="${i}">Pass</button></div></div>`).join("")}</div>` : `<p class="none">All caught up.</p>`}
+        </section>` : ""}
+        ${post}
+        ${dbxOk ? `<section><h3>Road live <span>${S.crew.length}</span></h3>${live(S.crew, "on Road")}</section>
+        <section><h3>POV live <span>${S.fans.length}</span></h3>${live(S.fans, "approved")}</section>` : ""}
+        ${members}
+        ${dbxOk ? dropbox : ""}
+      </div>`;
+      app.querySelectorAll("[data-tthumb]").forEach(el => T.thumb(q[+el.dataset.tthumb], el));
+      T.bind("dbxForm", async v => { await T.call("dropbox-app", v); toast("Saved. Now tap Connect Dropbox."); await T.loadAdmin(); });
+      T.bind("inviteForm", async v => { const j = await T.call("invite", v); T.lastInvite = j.link; await T.loadAdmin(); T.draw(); });
+    },
+    async act(action, path, el, msg){
+      el.disabled = true;
+      try { await T.call(action, { path }); toast(msg); T.inbox = T.inbox.filter(x => x.path !== path); T.badge(); T.draw(); setTimeout(refresh, 1500); }
+      catch (e) { el.disabled = false; toast(e.message); }
+    },
+    async upload(files){
+      files = [...files].filter(f => /^(image|video)\//.test(f.type) || /\.(heic|heif|mov)$/i.test(f.name));
+      if (!files.length) return;
+      const show = ($("#teamShow") || {}).value || defaultShow();
+      let ok = 0, fail = 0;
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i], label = files.length > 1 ? `Posting ${i + 1} of ${files.length}` : "Posting";
+        toast(label + "…");
+        try {
+          const { link } = await T.call("road-upload-link", { show, name: f.name, size: f.size, type: f.type });
+          await sendTo(link, f, p => toast(`${label} · ${Math.round(p * 100)}%`)); ok++;
+        } catch { fail++; }
+      }
+      toast(`${ok ? `Posted ${ok} to Road · ${(byId(show) || {}).city}. Live within a minute.` : ""}${fail ? ` ${fail} didn't go through.` : ""}`.trim(), 5000);
+      setTimeout(refresh, 2000);
+    },
+  };
+  app.addEventListener("change", async e => {
+    if (e.target.id === "teamShow") T.show = e.target.value;
+    const rs = e.target.closest && e.target.closest("[data-member-role]");
+    if (rs) { try { await T.call("set-role", { email: rs.dataset.memberRole, role: rs.value }); toast("Role updated."); T.loadAdmin(); } catch (err) { toast(err.message); } }
+  });
+  app.addEventListener("click", async e => {
+    const r = route(); if (!r.startsWith("team") && !r.startsWith("join-")) return;
+    const g = (a) => e.target.closest(`[${a}]`);
+    let b;
+    if ((b = g("data-team-ok"))) T.act("approve", T.inbox[+b.dataset.teamOk].path, b, "Approved. It's live on POV within a minute.");
+    else if ((b = g("data-team-pass"))) T.act("pass", T.inbox[+b.dataset.teamPass].path, b, "Passed. Moved to POV › Passed in Dropbox.");
+    else if ((b = g("data-team-down"))) T.act("takedown", b.dataset.teamDown, b, "Taken down. Moved out of the live folder in Dropbox.");
+    else if (g("data-team-add")) { $("#teamFile").click(); }
+    else if (g("data-team-out")) { try { await T.call("logout"); } catch {} T.token = ""; T.me = null; T.inbox = []; T.badge(); T.draw(); }
+    else if (g("data-dbx-connect")) { try { const j = await T.call("dropbox-connect"); location.href = j.url; } catch (err) { toast(err.message); } }
+    else if (g("data-dbx-off")) { try { await T.call("dropbox-disconnect"); toast("Dropbox disconnected."); if (T.status) T.status.dropbox = false; T.loadAdmin(); } catch (err) { toast(err.message); } }
+    else if ((b = g("data-member-remove"))) {
+      if (b.dataset.sure) { try { await T.call("remove-member", { email: b.dataset.memberRemove }); toast("Removed."); T.loadAdmin(); } catch (err) { toast(err.message); } }
+      else { b.dataset.sure = "1"; b.textContent = "Tap again to remove"; }
+    }
+    else if (g("data-copy-invite")) { const i = $("#invLink"); try { await navigator.clipboard.writeText(i.value); toast("Link copied."); } catch { i.select(); } }
+  });
+
   render();
 
   // ---- live data (from Dropbox through /api/media) ----
@@ -787,6 +990,8 @@ import { SHOWS } from "/shows.js";
     if (route() !== "booth") render();
   }
   const refresh = () => { load("pov", "fans", "fans"); load("road", "crew", "crew"); };
+  $("#teamFile").addEventListener("change", e => { const f = e.target.files; if (f && f.length) T.upload(f); e.target.value = ""; });
+  if (T.token) T.call("me").then(j => { T.me = j; if (T.admin()) T.loadAdmin(); }).catch(() => {});
   refresh();
   setInterval(() => { if (document.visibilityState === "visible") refresh(); }, 60000);
 })();

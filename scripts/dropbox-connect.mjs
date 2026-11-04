@@ -27,7 +27,7 @@ if (!tokRes.ok || !tok.refresh_token) { console.error("\nDropbox said no:", tok.
 const paths = [];
 for (const s of SHOWS) {
   const f = folderOf(s);
-  paths.push(`${root}/Road/${f}`, `${root}/POV/${f}`, `${root}/POV/Inbox/${f}`);
+  paths.push(`${root}/Road/${f}`, `${root}/POV/Uploaded/${f}`, `${root}/POV/Approved/${f}`);
 }
 const mk = await fetch("https://api.dropboxapi.com/2/files/create_folder_batch", {
   method: "POST",
