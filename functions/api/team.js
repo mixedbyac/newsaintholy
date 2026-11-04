@@ -63,9 +63,22 @@ export async function onRequestPost({ request, env }) {
       }
       case "login": {
         const u = await getUser(env, b.email);
-        if (!u || !u.joined || !(await checkPassword(u, b.password))) throw new HttpError(401, "Email or password didn't match.");
+        if (!u) throw new HttpError(401, "No team account uses that email.");
+        if (!u.joined) throw new HttpError(401, "That email was invited but hasn't finished joining. Use the invite link.");
+        if (!(await checkPassword(u, b.password)) && !(await checkPassword(u, String(b.password || "").trim()))) throw new HttpError(401, "Wrong password for that email.");
         await logEvent(env, u.name || u.email, "Signed in");
         return json({ token: await newSession(env, u.email), role: u.role, name: u.name });
+      }
+      case "reset-owner": {
+        // Locked out? The setup code from the hosting settings resets the owner's password.
+        if (!env.SETUP_CODE || b.code !== env.SETUP_CODE) throw new HttpError(401, "That setup code didn't match.");
+        const ownerEmail = await kv.get(env, "owner");
+        if (!ownerEmail) throw new HttpError(404, "There's no owner account yet. Create it instead.");
+        const u = await getUser(env, ownerEmail);
+        const pw = await hashPassword(b.password);
+        await saveUser(env, { ...u, email: ownerEmail, role: "owner", joined: true, ...pw });
+        await logEvent(env, u?.name || ownerEmail, "Reset the owner password with the setup code");
+        return json({ token: await newSession(env, ownerEmail), role: "owner", email: ownerEmail });
       }
       case "invite-info": {
         const inv = await kv.get(env, "invite:" + String(b.code || ""));

@@ -938,7 +938,15 @@ import { SHOWS } from "/shows.js";
         return;
       }
       if (!T.me) {
-        app.innerHTML = head + note + T.form("loginForm", [["email", "Email", "email", 'autocomplete="email"'], ["password", "Password", "password", 'autocomplete="current-password"']], "Sign in");
+        if (T.resetting) {
+          app.innerHTML = head + `<p class="role">Owner password reset. Use the setup code from your hosting settings.</p>` +
+            T.form("resetForm", [["code", "Setup code", "password"], ["password", "New password (8+ characters)", "password", 'autocomplete="new-password" minlength="8"']], "Reset and sign in") +
+            `<p class="role"><button class="tbtn" data-reset-off>Back to sign in</button></p>`;
+          T.bind("resetForm", async v => { T.resetting = false; T.signedIn(await T.call("reset-owner", v)); });
+          return;
+        }
+        app.innerHTML = head + note + T.form("loginForm", [["email", "Email", "email", 'autocomplete="username" autocapitalize="off" spellcheck="false"'], ["password", "Password", "password", 'autocomplete="current-password"']], "Sign in") +
+          `<p class="role"><button class="tbtn" data-reset-on>Owner? Forgot password</button></p>`;
         T.bind("loginForm", async v => T.signedIn(await T.call("login", v)));
         return;
       }
@@ -1045,6 +1053,8 @@ import { SHOWS } from "/shows.js";
       if (b.dataset.sure) { try { await T.call("remove-member", { email: b.dataset.memberRemove }); toast("Removed."); T.loadAdmin(); } catch (err) { toast(err.message); } }
       else { b.dataset.sure = "1"; b.textContent = "Tap again to remove"; }
     }
+    else if (g("data-reset-on")) { T.resetting = true; T.draw(); }
+    else if (g("data-reset-off")) { T.resetting = false; T.draw(); }
     else if (g("data-log-more")) { T.logMore = true; T.loadAdmin(); }
     else if (g("data-copy-invite")) { const i = $("#invLink"); try { await navigator.clipboard.writeText(i.value); toast("Link copied."); } catch { i.select(); } }
   });
